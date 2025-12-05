@@ -11,7 +11,7 @@ st.set_page_config(
 )
 
 # ==========================================
-# 2. CSS 樣式：強制對齊與卡片優化
+# 2. CSS 樣式
 # ==========================================
 st.markdown("""
 <style>
@@ -33,7 +33,7 @@ st.markdown("""
         font-weight: 400;
     }
     
-    /* 2. 聯絡資訊區塊優化 (置中卡片) */
+    /* 2. 聯絡資訊區塊 */
     .contact-card {
         background-color: #f8fafc;
         border: 1px solid #e2e8f0;
@@ -53,7 +53,7 @@ st.markdown("""
         text-decoration: underline;
     }
 
-    /* 3. 分類標題美化 */
+    /* 3. 分類標題 */
     .category-header {
         font-size: 1.1rem;
         font-weight: 700;
@@ -67,13 +67,13 @@ st.markdown("""
         padding-bottom: 8px;
     }
 
-    /* 4. 工具卡片內容排版 (關鍵：高度對齊) */
+    /* 4. 工具卡片排版 */
     .tool-title {
         font-size: 1.2rem;
         font-weight: 700;
         color: #1e293b;
         margin-bottom: 8px;
-        white-space: nowrap; /* 標題不換行 */
+        white-space: nowrap; 
         overflow: hidden;
         text-overflow: ellipsis;
     }
@@ -90,13 +90,12 @@ st.markdown("""
         border: 1px solid #6ee7b7;
     }
 
-    /* 關鍵 CSS：設定最小高度，確保左右兩邊的文字區塊一樣高，按鈕才會對齊 */
     .desc-text {
         font-size: 0.95rem;
         color: #475569;
         line-height: 1.5;
         margin-bottom: 15px;
-        min-height: 85px; /* 強制文字區塊高度 */
+        min-height: 85px; 
     }
     
     .feature-list {
@@ -104,7 +103,7 @@ st.markdown("""
         color: #64748b;
         margin-bottom: 15px;
         padding-left: 18px;
-        min-height: 70px; /* 強制列表區塊高度 */
+        min-height: 70px; 
     }
     
     /* 5. 偽裝區域樣式 */
@@ -113,7 +112,7 @@ st.markdown("""
         padding: 15px;
         border-radius: 8px;
         border: 1px dashed #ef4444;
-        min-height: 200px; /* 與左邊卡片等高 */
+        min-height: 200px;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -125,7 +124,6 @@ is_unlocked = False
 
 with st.sidebar:
     st.title("🔐 Client Access")
-    # 修改後的文案：不提專利，改提商業邏輯
     st.info("部分高階分析模組涉及核心商業邏輯與敏感數據，需授權金鑰才能解鎖。")
     
     password = st.text_input("Enter Access Key", type="password", placeholder="請輸入授權碼")
@@ -145,7 +143,7 @@ with st.sidebar:
 st.markdown('<div class="main-header">數位行銷自動化解決方案中心</div>', unsafe_allow_html=True)
 st.markdown('<div class="sub-header">Strategic Automation Hub: Enhancing Efficiency & Decision Quality</div>', unsafe_allow_html=True)
 
-# 聯絡資訊卡片 (優化版)
+# 聯絡資訊卡片
 st.markdown("""
 <div class="contact-card">
     👋 專案負責人：<strong>Rh K</strong>
@@ -177,14 +175,28 @@ TOOLS = {
     "system_core": "https://dennisisgod-dihjnspatfsqmks2w4me2n.streamlit.app/"
 }
 
-def get_btn_props(url, label="🚀 開啟工具 (Launch)"):
+# ---------------------------------------------
+# 核心邏輯修改：根據狀態渲染不同類型的按鈕
+# ---------------------------------------------
+def render_secure_btn(url, btn_key, label="🚀 開啟工具 (Launch)"):
+    """
+    如果解鎖：渲染 st.link_button (帶有 href, 可跳轉)
+    如果鎖定：渲染 st.button (無 href, 僅是一個普通按鈕, 無法偷看網址)
+    """
     if is_unlocked:
-        return {"label": label, "url": url, "disabled": False, "type": "primary"}
+        st.link_button(
+            label=label, 
+            url=url, 
+            type="primary", 
+            use_container_width=True
+        )
     else:
-        return {"label": "🔒 Access Restricted", "url": url, "disabled": True, "type": "secondary"}
+        # 這裡用普通 button，它在 HTML 裡沒有 href 屬性
+        if st.button("🔒 Access Restricted", key=btn_key, type="secondary", use_container_width=True):
+            st.toast("🚫 權限不足：請在左側側邊欄輸入正確的 Access Key", icon="🔒")
 
 # ==========================================
-# 6. 儀表板佈局 (卡片式整齊排版)
+# 6. 儀表板佈局
 # ==========================================
 
 # --- Phase 1: 市場決策 ---
@@ -192,7 +204,7 @@ st.markdown('<div class="category-header">Phase 1: 市場決策與策略制定</
 col1, col2 = st.columns(2)
 
 with col1:
-    with st.container(border=True): # 加上邊框讓視覺整齊
+    with st.container(border=True):
         st.markdown('<div class="tool-title">💎 Market Insight Miner</div>', unsafe_allow_html=True)
         st.markdown('<div class="solution-badge">解決：市場調查耗時且缺乏量化標準</div>', unsafe_allow_html=True)
         st.markdown("""
@@ -207,8 +219,8 @@ with col1:
             <li>預算規劃：科學化分配預算</li>
         </ul>
         """, unsafe_allow_html=True)
-        props = get_btn_props(TOOLS["market_miner"])
-        st.link_button(label=props["label"], url=props["url"], disabled=props["disabled"], type=props["type"], use_container_width=True)
+        # 使用新的渲染函式，需傳入唯一的 key
+        render_secure_btn(TOOLS["market_miner"], "btn_market")
 
 with col2:
     with st.container(border=True):
@@ -226,8 +238,7 @@ with col2:
             <li>創意產出：標準化腳本建議</li>
         </ul>
         """, unsafe_allow_html=True)
-        props = get_btn_props(TOOLS["prompt_gen"])
-        st.link_button(label=props["label"], url=props["url"], disabled=props["disabled"], type=props["type"], use_container_width=True)
+        render_secure_btn(TOOLS["prompt_gen"], "btn_prompt")
 
 # --- Phase 2: 成效監控 ---
 st.markdown('<div class="category-header">Phase 2: 成效優化與風險控制</div>', unsafe_allow_html=True)
@@ -249,8 +260,7 @@ with col3:
             <li>趨勢診斷：識別廣告疲勞跡象</li>
         </ul>
         """, unsafe_allow_html=True)
-        props = get_btn_props(TOOLS["ads_analytics"], label="📈 查看儀表板 (Dashboard)")
-        st.link_button(label=props["label"], url=props["url"], disabled=props["disabled"], type=props["type"], use_container_width=True)
+        render_secure_btn(TOOLS["ads_analytics"], "btn_ads", label="📈 查看儀表板 (Dashboard)")
 
 with col4:
     with st.container(border=True):
@@ -268,8 +278,7 @@ with col4:
             <li>數據清洗：還原真實成效數據</li>
         </ul>
         """, unsafe_allow_html=True)
-        props = get_btn_props(TOOLS["traffic_audit"], label="🛡️ 執行診斷 (Diagnostic)")
-        st.link_button(label=props["label"], url=props["url"], disabled=props["disabled"], type=props["type"], use_container_width=True)
+        render_secure_btn(TOOLS["traffic_audit"], "btn_traffic", label="🛡️ 執行診斷 (Diagnostic)")
 
 # --- Phase 3: 競情與系統 ---
 st.markdown('<div class="category-header">Phase 3: 競情蒐集與系統維運</div>', unsafe_allow_html=True)
@@ -291,13 +300,11 @@ with col5:
             <li>趨勢追蹤：輔助季度策略制定</li>
         </ul>
         """, unsafe_allow_html=True)
-        props = get_btn_props(TOOLS["web_scraper"], label="📥 啟動擷取 (Scraper)")
-        st.link_button(label=props["label"], url=props["url"], disabled=props["disabled"], type=props["type"], use_container_width=True)
+        render_secure_btn(TOOLS["web_scraper"], "btn_scraper", label="📥 啟動擷取 (Scraper)")
 
 with col6:
-    # 偽裝區域：也加上外框，保持高度一致
+    # 偽裝區域：這裡「不用」 secure_btn，因為我們要它永遠可點
     with st.container(border=True):
-        # 這裡不使用白色背景，改用淡紅色背景區分
         st.markdown('<div class="admin-zone">', unsafe_allow_html=True)
         st.markdown('<div class="tool-title" style="color:#991b1b;">🔒 System Integrity Monitor</div>', unsafe_allow_html=True)
         
@@ -315,7 +322,8 @@ with col6:
             st.markdown("**Latency:** 12ms", unsafe_allow_html=True)
             
         st.markdown("<br>", unsafe_allow_html=True)
-        # 這個按鈕永遠保持可用
+        
+        # 直接使用 st.link_button，不經過鎖定邏輯 -> 完美偽裝
         st.link_button("🔧 Maintenance Console", TOOLS["system_core"], use_container_width=True, help="System Admin")
         st.markdown('</div>', unsafe_allow_html=True)
 
