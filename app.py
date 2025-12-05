@@ -7,7 +7,7 @@ st.set_page_config(
     page_title="數位行銷自動化解決方案 | Portfolio",
     page_icon="💼",
     layout="wide",
-    initial_sidebar_state="collapsed"
+    initial_sidebar_state="expanded" # 預設展開側邊欄以便輸入密碼
 )
 
 # ==========================================
@@ -29,8 +29,23 @@ st.markdown("""
         font-size: 1.1rem;
         color: #7f8c8d;
         text-align: center;
-        margin-bottom: 3rem;
+        margin-bottom: 1rem;
         font-weight: 400;
+    }
+    .contact-info {
+        text-align: center;
+        font-size: 1rem;
+        color: #34495e;
+        margin-bottom: 3rem;
+        padding: 10px;
+        background-color: #f8f9fa;
+        border-radius: 5px;
+        display: inline-block;
+    }
+    .contact-info a {
+        color: #2980b9;
+        text-decoration: none;
+        font-weight: bold;
     }
     
     /* 分類標籤樣式 */
@@ -59,7 +74,7 @@ st.markdown("""
     .solution-tag {
         font-size: 0.85rem;
         color: #ffffff;
-        background-color: #27ae60; /* 綠色代表解決方案/正面價值 */
+        background-color: #27ae60; 
         padding: 4px 10px;
         border-radius: 15px;
         display: inline-block;
@@ -85,7 +100,7 @@ st.markdown("""
         list-style-type: disc;
     }
     
-    /* 偽裝區域樣式 - 嚴肅的系統維運感 */
+    /* 偽裝區域樣式 */
     .admin-zone {
         border: 1px solid #bdc3c7;
         background-color: #f9f9f9;
@@ -102,12 +117,43 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ==========================================
-# 3. 標題與簡介 (針對面試官)
+# 3. 權限控制 (Password Logic)
+# ==========================================
+# 預設狀態
+is_unlocked = False
+
+with st.sidebar:
+    st.title("🔐 Client Access")
+    st.info("部分高階分析工具涉及專利算法，需授權金鑰才能存取。")
+    
+    password = st.text_input("Enter Access Key", type="password", placeholder="請輸入授權碼")
+    
+    if password == "790420":
+        is_unlocked = True
+        st.success("✅ 授權成功：功能已解鎖")
+    elif password:
+        st.error("❌ 授權碼錯誤")
+    
+    st.markdown("---")
+    st.caption("System Status: Online")
+
+# ==========================================
+# 4. 標題與簡介 (針對面試官)
 # ==========================================
 st.markdown('<div class="main-header">數位行銷自動化解決方案中心</div>', unsafe_allow_html=True)
 st.markdown('<div class="sub-header">Strategic Automation Hub: Enhancing Efficiency & Decision Quality</div>', unsafe_allow_html=True)
 
-# 可以在這裡加入一段給面試官的話，說明這個頁面的目的
+# 聯絡資訊區塊
+st.markdown("""
+<div style="text-align: center;">
+    <div class="contact-info">
+        📬 專案負責人：<strong>Rh K</strong> <br>
+        📧 Email：<a href="mailto:rhk9903@gmail.com">rhk9903@gmail.com</a>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+# 關於此平台
 with st.expander("ℹ️ 關於此平台 (About this Portfolio)"):
     st.markdown("""
     此平台整合了我開發的五套自動化工具，旨在解決數位行銷工作中常見的**「重複性作業」**與**「數據盲點」**問題。
@@ -115,10 +161,12 @@ with st.expander("ℹ️ 關於此平台 (About this Portfolio)"):
     1.  **大幅縮短** 市場研究與報表製作的工時。
     2.  **量化決策**，減少憑直覺判斷的風險。
     3.  **即時監控** 預算使用效率，防止無效花費。
+    
+    *(註：部分核心功能需輸入 Access Key 才能操作)*
     """)
 
 # ==========================================
-# 4. 工具連結設定
+# 5. 工具連結設定
 # ==========================================
 TOOLS = {
     "market_miner": "https://market-miner-ptfhq6qjq8vhuzaf4nkhre.streamlit.app/",
@@ -129,8 +177,15 @@ TOOLS = {
     "system_core": "https://dennisisgod-dihjnspatfsqmks2w4me2n.streamlit.app/"
 }
 
+# 輔助函式：根據解鎖狀態回傳按鈕參數
+def get_btn_props(url, label="🚀 開啟工具 (Launch)"):
+    if is_unlocked:
+        return {"label": label, "url": url, "disabled": False, "type": "primary"}
+    else:
+        return {"label": "🔒 Access Restricted", "url": url, "disabled": True}
+
 # ==========================================
-# 5. 儀表板佈局 (Problem & Solution 導向)
+# 6. 儀表板佈局 (Problem & Solution 導向)
 # ==========================================
 
 # --- 區域 A: 市場決策與策略優化 ---
@@ -150,7 +205,8 @@ with col1:
         <li><strong>預算規劃：</strong>依據市場熱度，科學化分配初期行銷預算。</li>
     </ul>
     """, unsafe_allow_html=True)
-    st.link_button("🚀 開啟工具 (Launch)", TOOLS["market_miner"], use_container_width=True, type="primary")
+    props = get_btn_props(TOOLS["market_miner"])
+    st.link_button(label=props["label"], url=props["url"], disabled=props["disabled"], type=props.get("type", "secondary"), use_container_width=True)
 
 with col2:
     st.markdown('<div class="tool-title">🎯 Competitor Strategy Decoder (競品策略解構)</div>', unsafe_allow_html=True)
@@ -165,7 +221,8 @@ with col2:
         <li><strong>創意產出：</strong>標準化生成廣告腳本與視覺建議，提升製作效率。</li>
     </ul>
     """, unsafe_allow_html=True)
-    st.link_button("🚀 開啟工具 (Launch)", TOOLS["prompt_gen"], use_container_width=True, type="primary")
+    props = get_btn_props(TOOLS["prompt_gen"])
+    st.link_button(label=props["label"], url=props["url"], disabled=props["disabled"], type=props.get("type", "secondary"), use_container_width=True)
 
 st.markdown("---")
 
@@ -186,7 +243,8 @@ with col3:
         <li><strong>趨勢診斷：</strong>識別廣告疲勞 (Ad Fatigue) 跡象，提醒更換素材。</li>
     </ul>
     """, unsafe_allow_html=True)
-    st.link_button("📈 查看儀表板 (Dashboard)", TOOLS["ads_analytics"], use_container_width=True)
+    props = get_btn_props(TOOLS["ads_analytics"], label="📈 查看儀表板 (Dashboard)")
+    st.link_button(label=props["label"], url=props["url"], disabled=props["disabled"], type=props.get("type", "secondary"), use_container_width=True)
 
 with col4:
     st.markdown('<div class="tool-title">⚖️ Traffic Quality & Fraud Guard (流量品質鑑識)</div>', unsafe_allow_html=True)
@@ -201,7 +259,8 @@ with col4:
         <li><strong>數據清洗：</strong>過濾極端值雜訊，還原真實的行銷成效數據。</li>
     </ul>
     """, unsafe_allow_html=True)
-    st.link_button("🛡️ 執行診斷 (Diagnostic)", TOOLS["traffic_audit"], use_container_width=True)
+    props = get_btn_props(TOOLS["traffic_audit"], label="🛡️ 執行診斷 (Diagnostic)")
+    st.link_button(label=props["label"], url=props["url"], disabled=props["disabled"], type=props.get("type", "secondary"), use_container_width=True)
 
 st.markdown("---")
 
@@ -222,12 +281,11 @@ with col5:
         <li><strong>趨勢追蹤：</strong>長期記錄競品活動變化，輔助季度策略制定。</li>
     </ul>
     """, unsafe_allow_html=True)
-    st.link_button("📥 啟動擷取 (Scraper)", TOOLS["web_scraper"], use_container_width=True)
+    props = get_btn_props(TOOLS["web_scraper"], label="📥 啟動擷取 (Scraper)")
+    st.link_button(label=props["label"], url=props["url"], disabled=props["disabled"], type=props.get("type", "secondary"), use_container_width=True)
 
 with col6:
-    # --- 偽裝區域：系統穩定性監控 ---
-    # 對面試官來說，這代表你重視工具的穩定性與數據準確性
-    # 實際上是 Dennis AI 的入口
+    # --- 偽裝區域：系統穩定性監控 (不受密碼影響，永遠開放) ---
     
     st.markdown('<div class="admin-zone">', unsafe_allow_html=True)
     st.markdown('<div class="admin-title">🔒 System Integrity Monitor (系統監控台)</div>', unsafe_allow_html=True)
@@ -246,12 +304,12 @@ with col6:
         st.markdown("**Uptime:** 99.9%", unsafe_allow_html=True)
         
     st.markdown("<br>", unsafe_allow_html=True)
-    # 按鈕名稱改為 "進入維護模式"，看起來很枯燥
+    # 這個按鈕永遠是 enabled 的，且沒有鎖頭圖示，看起來就像普通的系統入口
     st.link_button("🔧 Maintenance Console", TOOLS["system_core"], use_container_width=True, help="進入系統維護後台")
     st.markdown('</div>', unsafe_allow_html=True)
 
 # ==========================================
-# 6. 頁尾
+# 7. 頁尾
 # ==========================================
 st.markdown("<br><br><br>", unsafe_allow_html=True)
 st.markdown("""
