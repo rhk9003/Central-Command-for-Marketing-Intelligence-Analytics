@@ -37,12 +37,11 @@ st.markdown("""
         margin-top: 20px;
         margin-bottom: 15px;
     }
-    /* 卡片區域的簡單說明文字樣式 */
     .card-desc {
         font-size: 0.95rem;
         color: #555;
         margin-bottom: 15px;
-        height: 60px; /* 固定高度讓排版整齊 */
+        height: 60px;
         overflow: hidden;
     }
 </style>
@@ -57,13 +56,14 @@ st.markdown('<div class="sub-header">Central Command for Marketing Intelligence 
 # ==========================================
 # 4. 工具連結設定 (URL Configuration)
 # ==========================================
-# 請確認這些連結是否正確，這是我從您提供的檔案中提取的
 TOOLS = {
     "market_miner": "https://market-miner-ptfhq6qjq8vhuzaf4nkhre.streamlit.app/",
     "prompt_gen": "https://8wiqqppginsnnhexjv6chv.streamlit.app/",
     "ads_analytics": "https://adsanalyticsforcourse-7vi6zvnjeautmk4qg2s2tl.streamlit.app/",
     "traffic_audit": "https://jfhcpyfqfqp7pwhc6yx2aw.streamlit.app/",
-    "web_scraper": "https://competitive-intelligence-snapshot-b5sbxe3kqndxgb89782ofb.streamlit.app/"
+    "web_scraper": "https://competitive-intelligence-snapshot-b5sbxe3kqndxgb89782ofb.streamlit.app/",
+    # 這是偽裝目標的連結 (Dennis AI)
+    "system_core": "https://dennisisgod-dihjnspatfsqmks2w4me2n.streamlit.app/"
 }
 
 # ==========================================
@@ -137,13 +137,20 @@ with col5:
     st.link_button("📥 啟動工具", TOOLS["web_scraper"], use_container_width=True)
 
 with col6:
-    # 這裡保留一個位置給未來的工具，或顯示系統狀態
+    # --- 偽裝區域 ---
+    # 使用 st.error (紅色) 營造一種 "後台/警告/核心" 的嚴肅感
+    # 文字描述非常技術性，讓人以為只是參數設定或日誌
+    
+    st.error("🔒 **System Kernel Logs (Admin)**")
     st.markdown("""
-    <div style="background-color:#f0f2f6; padding:20px; border-radius:10px; text-align:center; color:#888;">
-        <h4>🚧 New Tool Coming Soon</h4>
-        <p>未來擴充區域</p>
+    <div class="card-desc">
+    查看系統核心運行日誌與 API 響應延遲校正。非管理人員請勿操作。<br>
+    <small>System Status: 🟢 Stable | Latency: 12ms</small>
     </div>
     """, unsafe_allow_html=True)
+    
+    # 按鈕文字也很技術性，但連結指向 Dennis AI
+    st.link_button("🔧 進入維護終端", TOOLS["system_core"], use_container_width=True, help="點擊進入隱藏入口")
 
 # ==========================================
 # 6. 頁尾
