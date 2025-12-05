@@ -1,5 +1,6 @@
 import streamlit as st
 import os
+import requests # 新增：用於呼叫計數 API
 
 # ==========================================
 # 1. 頁面基礎設定
@@ -104,18 +105,56 @@ st.markdown("""
         border: 1px dashed #ef4444;
     }
     
-    /* 圖片樣式：加一點陰影讓截圖更立體 */
+    /* 圖片樣式 */
     img {
         border-radius: 4px;
         border: 1px solid #e2e8f0;
         box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         margin-bottom: 10px;
     }
+    
+    /* 計數器樣式 */
+    .counter-text {
+        font-family: monospace;
+        color: #b91c1c;
+        font-size: 0.9rem;
+        background-color: #fee2e2;
+        padding: 5px 10px;
+        border-radius: 4px;
+        display: inline-block;
+        margin-bottom: 10px;
+    }
 </style>
 """, unsafe_allow_html=True)
 
 # ==========================================
-# 3. 權限控制 (Demo Access)
+# 3. 系統核心邏輯 (雲端計數)
+# ==========================================
+# 使用 CounterAPI 來記錄中控台的點擊數
+COUNTER_URL = "https://api.counterapi.dev/v1"
+# 建議修改 namespace 避免跟別人重複 (例如: yourname_portfolio)
+NAMESPACE = "rhk_portfolio_system" 
+KEY = "console_access_logs"
+
+def get_access_count():
+    """讀取目前的存取次數"""
+    try:
+        r = requests.get(f"{COUNTER_URL}/{NAMESPACE}/{KEY}/")
+        if r.status_code == 200:
+            return r.json().get("count", 0)
+    except:
+        return 0 # 如果 API 失敗，回傳 0
+    return 0
+
+def log_access_attempt():
+    """增加一次存取紀錄"""
+    try:
+        requests.get(f"{COUNTER_URL}/{NAMESPACE}/{KEY}/up")
+    except:
+        pass
+
+# ==========================================
+# 4. 權限控制 (Demo Access)
 # ==========================================
 is_unlocked = False
 
@@ -134,7 +173,7 @@ with st.sidebar:
     st.caption("Demo Environment: 🟢 Online")
 
 # ==========================================
-# 4. 標題與簡介
+# 5. 標題與簡介
 # ==========================================
 st.markdown('<div class="main-header">數位行銷自動化解決方案中心</div>', unsafe_allow_html=True)
 st.markdown('<div class="sub-header">Strategic Automation Hub: Enhancing Efficiency & Decision Quality</div>', unsafe_allow_html=True)
@@ -160,7 +199,7 @@ with st.expander("ℹ️ 關於此平台 (About this Portfolio)", expanded=True)
     """)
 
 # ==========================================
-# 5. 設定區：連結與圖片對照
+# 6. 設定區：連結與圖片
 # ==========================================
 TOOLS = {
     "market_miner": "https://market-miner-ptfhq6qjq8vhuzaf4nkhre.streamlit.app/",
@@ -171,7 +210,7 @@ TOOLS = {
     "system_core": "https://dennisisgod-dihjnspatfsqmks2w4me2n.streamlit.app/"
 }
 
-# 這裡設定您要讀取的圖片檔名
+# 圖片檔名對照
 IMG_FILES = {
     "market_miner": "demo_market.png",
     "prompt_gen": "demo_strategy.png",
@@ -181,17 +220,13 @@ IMG_FILES = {
     "system_core": "demo_console.png"
 }
 
-# 輔助函式：安全顯示圖片
 def show_demo_image(key):
     filename = IMG_FILES.get(key)
-    # 檢查檔案是否存在
     if filename and os.path.exists(filename):
         st.image(filename, use_container_width=True)
     else:
-        # 如果找不到圖片，顯示一個灰底提示框，避免版面崩壞
         st.info(f"🖼️ 待上傳截圖：{filename}")
 
-# 輔助函式：按鈕渲染
 def render_secure_btn(url, btn_key, label="🚀 開啟工具 (Launch)"):
     if is_unlocked:
         st.link_button(label=label, url=url, type="primary", use_container_width=True)
@@ -200,7 +235,7 @@ def render_secure_btn(url, btn_key, label="🚀 開啟工具 (Launch)"):
             st.toast("🚫 請輸入 Demo Key 以解鎖試用功能", icon="🔒")
 
 # ==========================================
-# 6. 儀表板佈局 (真實圖片版)
+# 7. 儀表板佈局
 # ==========================================
 
 # --- Phase 1 ---
@@ -211,10 +246,7 @@ with col1:
     with st.container(border=True):
         st.markdown('<div class="tool-title">💎 Market Insight Miner</div>', unsafe_allow_html=True)
         st.markdown('<div class="solution-badge">解決：市場調查耗時且缺乏量化標準</div>', unsafe_allow_html=True)
-        
-        # 顯示真實截圖
         show_demo_image("market_miner")
-        
         st.markdown("""
         <div class="desc-text">
         將繁雜的搜尋量數據轉化為可視化的「紅藍海策略地圖」。協助團隊在投入預算前，快速識別高需求但低競爭的利基市場。
@@ -233,9 +265,7 @@ with col2:
     with st.container(border=True):
         st.markdown('<div class="tool-title">🎯 Competitor Strategy Decoder</div>', unsafe_allow_html=True)
         st.markdown('<div class="solution-badge">解決：廣告缺乏差異化，創意憑感覺</div>', unsafe_allow_html=True)
-        
         show_demo_image("prompt_gen")
-        
         st.markdown("""
         <div class="desc-text">
         透過逆向工程拆解競品策略。從對手文案中提煉受眾心理，自動生成具備「差異化優勢」的行銷切角，確保素材突圍。
@@ -258,9 +288,7 @@ with col3:
     with st.container(border=True):
         st.markdown('<div class="tool-title">📈 Automated Performance Audit</div>', unsafe_allow_html=True)
         st.markdown('<div class="solution-badge">解決：人工報表製作耗時，異常滯後</div>', unsafe_allow_html=True)
-        
         show_demo_image("ads_analytics")
-        
         st.markdown("""
         <div class="desc-text">
         取代人工 Excel 拉表，自動進行成效診斷。能比人工更早發現 CPA 暴漲或 CTR 衰退跡象，實現「即時止損」。
@@ -279,9 +307,7 @@ with col4:
     with st.container(border=True):
         st.markdown('<div class="tool-title">⚖️ Traffic Quality & Fraud Guard</div>', unsafe_allow_html=True)
         st.markdown('<div class="solution-badge">解決：無效流量浪費預算與誤導</div>', unsafe_allow_html=True)
-        
         show_demo_image("traffic_audit")
-        
         st.markdown("""
         <div class="desc-text">
         針對廣告帳戶進行健康度檢查，揪出「幽靈點擊」與「展示灌水」行為。確保預算花在真實的高品質潛在客戶身上。
@@ -304,9 +330,7 @@ with col5:
     with st.container(border=True):
         st.markdown('<div class="tool-title">📥 Competitive Intelligence</div>', unsafe_allow_html=True)
         st.markdown('<div class="solution-badge">解決：手動截圖效率低，難以追蹤</div>', unsafe_allow_html=True)
-        
         show_demo_image("web_scraper")
-        
         st.markdown("""
         <div class="desc-text">
         模擬使用者行為，自動擷取競爭對手的動態網頁資料 (如 FB 廣告檔案庫)。解決「無限捲動」問題，建立戰略資料庫。
@@ -325,21 +349,46 @@ with col6:
     with st.container(border=True):
         st.markdown('<div class="admin-zone">', unsafe_allow_html=True)
         st.markdown('<div class="tool-title" style="color:#991b1b;">🔒 System Integrity Monitor</div>', unsafe_allow_html=True)
-        
-        # 顯示系統終端機截圖
         show_demo_image("system_core")
         
-        st.markdown("""
-        <div style="font-size: 0.85rem; color: #7f8c8d; margin-bottom: 15px; line-height:1.5;">
-        <strong>[Demo Module]</strong> 監控 API 連線狀態與錯誤日誌。<br>
-        確保分析數據準確性。若發生資料源中斷，此處將顯示警報。
+        # --- [新增] 連線日誌與計數功能 ---
+        
+        # 讀取目前次數
+        access_count = get_access_count()
+        
+        st.markdown(f"""
+        <div style="font-size: 0.85rem; color: #7f8c8d; margin-bottom: 10px; line-height:1.5;">
+        <strong>[Demo Module]</strong> 監控 API 連線狀態與系統日誌。<br>
+        確保分析數據準確性。
+        </div>
+        
+        <div class="counter-text">
+        ⚡ Access Logs: {access_count} Attempts
         </div>
         """, unsafe_allow_html=True)
-        st.link_button("🔧 Demo Console", TOOLS["system_core"], use_container_width=True, help="System Admin")
+        
+        # 兩段式按鈕邏輯：
+        # 1. 如果還沒連線 -> 顯示「初始化」按鈕 -> 點擊後寫入日誌並切換狀態
+        # 2. 如果已連線 -> 顯示「進入控制台」連結按鈕
+        
+        if "console_connected" not in st.session_state:
+            st.session_state.console_connected = False
+            
+        if not st.session_state.console_connected:
+            if st.button("⚡ Initialize Connection", use_container_width=True, type="primary"):
+                with st.spinner("Connecting to secure server..."):
+                    log_access_attempt() # 寫入計數
+                    st.session_state.console_connected = True
+                    st.rerun() # 重新整理以顯示連結按鈕
+        else:
+            # 顯示連線成功並提供跳轉
+            st.success("✅ Connection Established")
+            st.link_button("🔧 Enter Demo Console", TOOLS["system_core"], use_container_width=True)
+
         st.markdown('</div>', unsafe_allow_html=True)
 
 # ==========================================
-# 7. 頁尾
+# 8. 頁尾
 # ==========================================
 st.markdown("<br><br>", unsafe_allow_html=True)
 st.markdown("""
