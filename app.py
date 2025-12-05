@@ -7,124 +7,126 @@ st.set_page_config(
     page_title="數位行銷自動化解決方案 | Portfolio",
     page_icon="💼",
     layout="wide",
-    initial_sidebar_state="expanded" # 預設展開側邊欄以便輸入密碼
+    initial_sidebar_state="collapsed" 
 )
 
 # ==========================================
-# 2. CSS 樣式：專業商務風格
+# 2. CSS 樣式：強制對齊與卡片優化
 # ==========================================
 st.markdown("""
 <style>
-    /* 全局字型與配色 */
+    /* 1. 全局字型優化 */
     .main-header {
         font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-        font-size: 2.5rem;
+        font-size: 2.2rem;
         font-weight: 700;
         color: #2c3e50;
         text-align: center;
-        margin-top: 1rem;
-        margin-bottom: 0.5rem;
-    }
-    .sub-header {
-        font-size: 1.1rem;
-        color: #7f8c8d;
-        text-align: center;
-        margin-bottom: 1rem;
-        font-weight: 400;
-    }
-    .contact-info {
-        text-align: center;
-        font-size: 1rem;
-        color: #34495e;
-        margin-bottom: 3rem;
-        padding: 10px;
-        background-color: #f8f9fa;
-        border-radius: 5px;
-        display: inline-block;
-    }
-    .contact-info a {
-        color: #2980b9;
-        text-decoration: none;
-        font-weight: bold;
-    }
-    
-    /* 分類標籤樣式 */
-    .category-label {
-        font-size: 1.2rem;
-        font-weight: 600;
-        color: #34495e;
-        border-left: 5px solid #2980b9;
-        padding-left: 12px;
-        margin-top: 40px;
-        margin-bottom: 20px;
-        background-color: #ecf0f1;
-        padding-top: 5px;
-        padding-bottom: 5px;
-    }
-
-    /* 卡片標題 */
-    .tool-title {
-        font-size: 1.3rem;
-        font-weight: 700;
-        color: #2c3e50;
+        margin-top: 10px;
         margin-bottom: 5px;
     }
+    .sub-header {
+        font-size: 1rem;
+        color: #7f8c8d;
+        text-align: center;
+        margin-bottom: 30px;
+        font-weight: 400;
+    }
     
-    /* 解決問題標籤 (核心價值) */
-    .solution-tag {
-        font-size: 0.85rem;
-        color: #ffffff;
-        background-color: #27ae60; 
-        padding: 4px 10px;
-        border-radius: 15px;
-        display: inline-block;
-        margin-bottom: 12px;
-        font-weight: 500;
+    /* 2. 聯絡資訊區塊優化 (置中卡片) */
+    .contact-card {
+        background-color: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 12px;
+        text-align: center;
+        margin-bottom: 25px;
+        color: #475569;
+        font-size: 1rem;
+    }
+    .contact-card a {
+        color: #2563eb;
+        font-weight: 600;
+        text-decoration: none;
+    }
+    .contact-card a:hover {
+        text-decoration: underline;
     }
 
-    /* 商業情境描述 */
-    .business-desc {
-        font-size: 0.95rem;
-        color: #34495e;
-        line-height: 1.6;
-        margin-bottom: 15px;
-        min-height: 90px;
-    }
-    
-    /* 重點清單 */
-    .feature-list {
-        font-size: 0.9rem;
-        color: #576574;
-        margin-bottom: 20px;
-        padding-left: 20px;
-        list-style-type: disc;
-    }
-    
-    /* 偽裝區域樣式 */
-    .admin-zone {
-        border: 1px solid #bdc3c7;
-        background-color: #f9f9f9;
-        padding: 20px;
-        border-radius: 5px;
-    }
-    .admin-title {
-        font-family: monospace;
-        color: #7f8c8d;
-        font-weight: bold;
+    /* 3. 分類標題美化 */
+    .category-header {
         font-size: 1.1rem;
+        font-weight: 700;
+        color: #334155;
+        border-left: 5px solid #3b82f6;
+        padding-left: 10px;
+        margin-top: 30px;
+        margin-bottom: 15px;
+        background: linear-gradient(90deg, #f1f5f9 0%, #ffffff 100%);
+        padding-top: 8px;
+        padding-bottom: 8px;
+    }
+
+    /* 4. 工具卡片內容排版 (關鍵：高度對齊) */
+    .tool-title {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 8px;
+        white-space: nowrap; /* 標題不換行 */
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .solution-badge {
+        font-size: 0.8rem;
+        color: #047857;
+        background-color: #d1fae5;
+        padding: 4px 8px;
+        border-radius: 4px;
+        display: inline-block;
+        margin-bottom: 12px;
+        font-weight: 600;
+        border: 1px solid #6ee7b7;
+    }
+
+    /* 關鍵 CSS：設定最小高度，確保左右兩邊的文字區塊一樣高，按鈕才會對齊 */
+    .desc-text {
+        font-size: 0.95rem;
+        color: #475569;
+        line-height: 1.5;
+        margin-bottom: 15px;
+        min-height: 85px; /* 強制文字區塊高度 */
+    }
+    
+    .feature-list {
+        font-size: 0.85rem;
+        color: #64748b;
+        margin-bottom: 15px;
+        padding-left: 18px;
+        min-height: 70px; /* 強制列表區塊高度 */
+    }
+    
+    /* 5. 偽裝區域樣式 */
+    .admin-zone {
+        background-color: #fef2f2;
+        padding: 15px;
+        border-radius: 8px;
+        border: 1px dashed #ef4444;
+        min-height: 200px; /* 與左邊卡片等高 */
     }
 </style>
 """, unsafe_allow_html=True)
 
 # ==========================================
-# 3. 權限控制 (Password Logic)
+# 3. 權限控制
 # ==========================================
-# 預設狀態
 is_unlocked = False
 
 with st.sidebar:
     st.title("🔐 Client Access")
-    st.info("部分高階分析工具涉及專利算法，需授權金鑰才能存取。")
+    # 修改後的文案：不提專利，改提商業邏輯
+    st.info("部分高階分析模組涉及核心商業邏輯與敏感數據，需授權金鑰才能解鎖。")
     
     password = st.text_input("Enter Access Key", type="password", placeholder="請輸入授權碼")
     
@@ -134,26 +136,24 @@ with st.sidebar:
     elif password:
         st.error("❌ 授權碼錯誤")
     
-    st.markdown("---")
-    st.caption("System Status: Online")
+    st.divider()
+    st.caption("System Status: 🟢 Online")
 
 # ==========================================
-# 4. 標題與簡介 (針對面試官)
+# 4. 標題與簡介
 # ==========================================
 st.markdown('<div class="main-header">數位行銷自動化解決方案中心</div>', unsafe_allow_html=True)
 st.markdown('<div class="sub-header">Strategic Automation Hub: Enhancing Efficiency & Decision Quality</div>', unsafe_allow_html=True)
 
-# 聯絡資訊區塊
+# 聯絡資訊卡片 (優化版)
 st.markdown("""
-<div style="text-align: center;">
-    <div class="contact-info">
-        📬 專案負責人：<strong>Rh K</strong> <br>
-        📧 Email：<a href="mailto:rhk9903@gmail.com">rhk9903@gmail.com</a>
-    </div>
+<div class="contact-card">
+    👋 專案負責人：<strong>Rh K</strong>
+    &nbsp;&nbsp;<span style="color:#cbd5e1">|</span>&nbsp;&nbsp;
+    📧 Email：<a href="mailto:rhk9903@gmail.com">rhk9903@gmail.com</a>
 </div>
 """, unsafe_allow_html=True)
 
-# 關於此平台
 with st.expander("ℹ️ 關於此平台 (About this Portfolio)"):
     st.markdown("""
     此平台整合了我開發的五套自動化工具，旨在解決數位行銷工作中常見的**「重複性作業」**與**「數據盲點」**問題。
@@ -162,7 +162,7 @@ with st.expander("ℹ️ 關於此平台 (About this Portfolio)"):
     2.  **量化決策**，減少憑直覺判斷的風險。
     3.  **即時監控** 預算使用效率，防止無效花費。
     
-    *(註：部分核心功能需輸入 Access Key 才能操作)*
+    *(註：核心功能需輸入 Access Key 解鎖)*
     """)
 
 # ==========================================
@@ -177,143 +177,154 @@ TOOLS = {
     "system_core": "https://dennisisgod-dihjnspatfsqmks2w4me2n.streamlit.app/"
 }
 
-# 輔助函式：根據解鎖狀態回傳按鈕參數
 def get_btn_props(url, label="🚀 開啟工具 (Launch)"):
     if is_unlocked:
         return {"label": label, "url": url, "disabled": False, "type": "primary"}
     else:
-        return {"label": "🔒 Access Restricted", "url": url, "disabled": True}
+        return {"label": "🔒 Access Restricted", "url": url, "disabled": True, "type": "secondary"}
 
 # ==========================================
-# 6. 儀表板佈局 (Problem & Solution 導向)
+# 6. 儀表板佈局 (卡片式整齊排版)
 # ==========================================
 
-# --- 區域 A: 市場決策與策略優化 ---
-st.markdown('<div class="category-label">Phase 1: 市場決策與策略制定 (Strategy & Planning)</div>', unsafe_allow_html=True)
+# --- Phase 1: 市場決策 ---
+st.markdown('<div class="category-header">Phase 1: 市場決策與策略制定</div>', unsafe_allow_html=True)
 col1, col2 = st.columns(2)
 
 with col1:
-    st.markdown('<div class="tool-title">💎 Market Insight Miner (市場機會探勘)</div>', unsafe_allow_html=True)
-    st.markdown('<span class="solution-tag">解決：人工市場調查耗時且缺乏量化標準</span>', unsafe_allow_html=True)
-    st.markdown("""
-    <div class="business-desc">
-    將繁雜的 Google 搜尋量數據轉化為可視化的「紅藍海策略地圖」。協助團隊在投入預算前，快速識別高需求但低競爭的利基市場 (Niche Market)，避免在紅海市場無效競爭。
-    </div>
-    <ul class="feature-list">
-        <li><strong>機會點發現：</strong>自動計算競爭指數，找出高潛力關鍵字。</li>
-        <li><strong>消費者洞察：</strong>分析搜尋詞彙背後的消費者意圖與痛點。</li>
-        <li><strong>預算規劃：</strong>依據市場熱度，科學化分配初期行銷預算。</li>
-    </ul>
-    """, unsafe_allow_html=True)
-    props = get_btn_props(TOOLS["market_miner"])
-    st.link_button(label=props["label"], url=props["url"], disabled=props["disabled"], type=props.get("type", "secondary"), use_container_width=True)
+    with st.container(border=True): # 加上邊框讓視覺整齊
+        st.markdown('<div class="tool-title">💎 Market Insight Miner</div>', unsafe_allow_html=True)
+        st.markdown('<div class="solution-badge">解決：市場調查耗時且缺乏量化標準</div>', unsafe_allow_html=True)
+        st.markdown("""
+        <div class="desc-text">
+        將繁雜的搜尋量數據轉化為可視化的「紅藍海策略地圖」。協助團隊在投入預算前，快速識別高需求但低競爭的利基市場。
+        </div>
+        """, unsafe_allow_html=True)
+        st.markdown("""
+        <ul class="feature-list">
+            <li>機會點發現：計算競爭指數</li>
+            <li>消費者洞察：分析意圖與痛點</li>
+            <li>預算規劃：科學化分配預算</li>
+        </ul>
+        """, unsafe_allow_html=True)
+        props = get_btn_props(TOOLS["market_miner"])
+        st.link_button(label=props["label"], url=props["url"], disabled=props["disabled"], type=props["type"], use_container_width=True)
 
 with col2:
-    st.markdown('<div class="tool-title">🎯 Competitor Strategy Decoder (競品策略解構)</div>', unsafe_allow_html=True)
-    st.markdown('<span class="solution-tag">解決：廣告素材缺乏差異化，創意發想憑感覺</span>', unsafe_allow_html=True)
-    st.markdown("""
-    <div class="business-desc">
-    透過逆向工程邏輯，系統化拆解競爭對手的廣告策略。從對手的文案與視覺中提煉出受眾心理，並自動生成具備「差異化優勢」的行銷切角，確保我方素材能有效突圍。
-    </div>
-    <ul class="feature-list">
-        <li><strong>策略分析：</strong>快速歸納競品的主打訴求與受眾輪廓。</li>
-        <li><strong>差異化定位：</strong>自動比對我方與競品優劣，找出溝通缺口。</li>
-        <li><strong>創意產出：</strong>標準化生成廣告腳本與視覺建議，提升製作效率。</li>
-    </ul>
-    """, unsafe_allow_html=True)
-    props = get_btn_props(TOOLS["prompt_gen"])
-    st.link_button(label=props["label"], url=props["url"], disabled=props["disabled"], type=props.get("type", "secondary"), use_container_width=True)
+    with st.container(border=True):
+        st.markdown('<div class="tool-title">🎯 Competitor Strategy Decoder</div>', unsafe_allow_html=True)
+        st.markdown('<div class="solution-badge">解決：廣告缺乏差異化，創意憑感覺</div>', unsafe_allow_html=True)
+        st.markdown("""
+        <div class="desc-text">
+        透過逆向工程拆解競品策略。從對手文案中提煉受眾心理，自動生成具備「差異化優勢」的行銷切角，確保素材突圍。
+        </div>
+        """, unsafe_allow_html=True)
+        st.markdown("""
+        <ul class="feature-list">
+            <li>策略分析：歸納主打訴求</li>
+            <li>差異化定位：找出溝通缺口</li>
+            <li>創意產出：標準化腳本建議</li>
+        </ul>
+        """, unsafe_allow_html=True)
+        props = get_btn_props(TOOLS["prompt_gen"])
+        st.link_button(label=props["label"], url=props["url"], disabled=props["disabled"], type=props["type"], use_container_width=True)
 
-st.markdown("---")
-
-# --- 區域 B: 成效監控與預算風控 ---
-st.markdown('<div class="category-label">Phase 2: 成效優化與風險控制 (Optimization & Risk Control)</div>', unsafe_allow_html=True)
+# --- Phase 2: 成效監控 ---
+st.markdown('<div class="category-header">Phase 2: 成效優化與風險控制</div>', unsafe_allow_html=True)
 col3, col4 = st.columns(2)
 
 with col3:
-    st.markdown('<div class="tool-title">📈 Automated Performance Audit (成效自動稽核)</div>', unsafe_allow_html=True)
-    st.markdown('<span class="solution-tag">解決：人工報表製作耗時，異常發現滯後</span>', unsafe_allow_html=True)
-    st.markdown("""
-    <div class="business-desc">
-    取代傳統人工 Excel 拉表作業，自動化進行跨週期的成效診斷。能比人工更早發現 CPA (獲客成本) 暴漲或 CTR (點擊率) 衰退的跡象，實現「即時止損」與「精準擴量」。
-    </div>
-    <ul class="feature-list">
-        <li><strong>自動化週報：</strong>一鍵生成包含 P1D/P7D 對比的完整分析報告。</li>
-        <li><strong>異常警示：</strong>針對 CPA 暴漲 >30% 等情況發出緊急調整建議。</li>
-        <li><strong>趨勢診斷：</strong>識別廣告疲勞 (Ad Fatigue) 跡象，提醒更換素材。</li>
-    </ul>
-    """, unsafe_allow_html=True)
-    props = get_btn_props(TOOLS["ads_analytics"], label="📈 查看儀表板 (Dashboard)")
-    st.link_button(label=props["label"], url=props["url"], disabled=props["disabled"], type=props.get("type", "secondary"), use_container_width=True)
+    with st.container(border=True):
+        st.markdown('<div class="tool-title">📈 Automated Performance Audit</div>', unsafe_allow_html=True)
+        st.markdown('<div class="solution-badge">解決：人工報表製作耗時，異常滯後</div>', unsafe_allow_html=True)
+        st.markdown("""
+        <div class="desc-text">
+        取代人工 Excel 拉表，自動進行成效診斷。能比人工更早發現 CPA 暴漲或 CTR 衰退跡象，實現「即時止損」。
+        </div>
+        """, unsafe_allow_html=True)
+        st.markdown("""
+        <ul class="feature-list">
+            <li>自動化週報：生成 P1D/P7D 報告</li>
+            <li>異常警示：偵測 CPA 異常暴漲</li>
+            <li>趨勢診斷：識別廣告疲勞跡象</li>
+        </ul>
+        """, unsafe_allow_html=True)
+        props = get_btn_props(TOOLS["ads_analytics"], label="📈 查看儀表板 (Dashboard)")
+        st.link_button(label=props["label"], url=props["url"], disabled=props["disabled"], type=props["type"], use_container_width=True)
 
 with col4:
-    st.markdown('<div class="tool-title">⚖️ Traffic Quality & Fraud Guard (流量品質鑑識)</div>', unsafe_allow_html=True)
-    st.markdown('<span class="solution-tag">解決：無效流量浪費預算，數據虛胖誤導決策</span>', unsafe_allow_html=True)
-    st.markdown("""
-    <div class="business-desc">
-    針對廣告帳戶進行健康度檢查，揪出「幽靈點擊」(高點擊低瀏覽) 與「展示灌水」等異常行為。確保每一分行銷預算都花在真實、高品質的潛在客戶身上。
-    </div>
-    <ul class="feature-list">
-        <li><strong>預算保護：</strong>識別並排除異常流量來源，提升預算利用率。</li>
-        <li><strong>基準建立：</strong>透過統計學算法建立帳戶的「正常表現基準線」。</li>
-        <li><strong>數據清洗：</strong>過濾極端值雜訊，還原真實的行銷成效數據。</li>
-    </ul>
-    """, unsafe_allow_html=True)
-    props = get_btn_props(TOOLS["traffic_audit"], label="🛡️ 執行診斷 (Diagnostic)")
-    st.link_button(label=props["label"], url=props["url"], disabled=props["disabled"], type=props.get("type", "secondary"), use_container_width=True)
+    with st.container(border=True):
+        st.markdown('<div class="tool-title">⚖️ Traffic Quality & Fraud Guard</div>', unsafe_allow_html=True)
+        st.markdown('<div class="solution-badge">解決：無效流量浪費預算與誤導</div>', unsafe_allow_html=True)
+        st.markdown("""
+        <div class="desc-text">
+        針對廣告帳戶進行健康度檢查，揪出「幽靈點擊」與「展示灌水」行為。確保預算花在真實的高品質潛在客戶身上。
+        </div>
+        """, unsafe_allow_html=True)
+        st.markdown("""
+        <ul class="feature-list">
+            <li>預算保護：排除異常流量來源</li>
+            <li>基準建立：統計算法建立基準線</li>
+            <li>數據清洗：還原真實成效數據</li>
+        </ul>
+        """, unsafe_allow_html=True)
+        props = get_btn_props(TOOLS["traffic_audit"], label="🛡️ 執行診斷 (Diagnostic)")
+        st.link_button(label=props["label"], url=props["url"], disabled=props["disabled"], type=props["type"], use_container_width=True)
 
-st.markdown("---")
-
-# --- 區域 C: 競情蒐集與系統監控 ---
-st.markdown('<div class="category-label">Phase 3: 競情蒐集與系統維運 (Intelligence & Support)</div>', unsafe_allow_html=True)
+# --- Phase 3: 競情與系統 ---
+st.markdown('<div class="category-header">Phase 3: 競情蒐集與系統維運</div>', unsafe_allow_html=True)
 col5, col6 = st.columns(2)
 
 with col5:
-    st.markdown('<div class="tool-title">📥 Competitive Intelligence Archiver (競情自動歸檔)</div>', unsafe_allow_html=True)
-    st.markdown('<span class="solution-tag">解決：手動截圖競品廣告效率低，難以長期追蹤</span>', unsafe_allow_html=True)
-    st.markdown("""
-    <div class="business-desc">
-    自動化模擬使用者行為，批量擷取與歸檔競爭對手的動態網頁資料 (如 Facebook 廣告檔案庫)。解決「無限捲動」網頁難以完整保存的問題，建立長期的戰略資料庫。
-    </div>
-    <ul class="feature-list">
-        <li><strong>效率提升：</strong>將數小時的手動截圖工作縮減至數分鐘完成。</li>
-        <li><strong>完整保存：</strong>自動展開隱藏內容，確保情資擷取無遺漏。</li>
-        <li><strong>趨勢追蹤：</strong>長期記錄競品活動變化，輔助季度策略制定。</li>
-    </ul>
-    """, unsafe_allow_html=True)
-    props = get_btn_props(TOOLS["web_scraper"], label="📥 啟動擷取 (Scraper)")
-    st.link_button(label=props["label"], url=props["url"], disabled=props["disabled"], type=props.get("type", "secondary"), use_container_width=True)
+    with st.container(border=True):
+        st.markdown('<div class="tool-title">📥 Competitive Intelligence</div>', unsafe_allow_html=True)
+        st.markdown('<div class="solution-badge">解決：手動截圖效率低，難以追蹤</div>', unsafe_allow_html=True)
+        st.markdown("""
+        <div class="desc-text">
+        模擬使用者行為，自動擷取競爭對手的動態網頁資料 (如 FB 廣告檔案庫)。解決「無限捲動」問題，建立戰略資料庫。
+        </div>
+        """, unsafe_allow_html=True)
+        st.markdown("""
+        <ul class="feature-list">
+            <li>效率提升：自動化批量歸檔</li>
+            <li>完整保存：自動展開隱藏內容</li>
+            <li>趨勢追蹤：輔助季度策略制定</li>
+        </ul>
+        """, unsafe_allow_html=True)
+        props = get_btn_props(TOOLS["web_scraper"], label="📥 啟動擷取 (Scraper)")
+        st.link_button(label=props["label"], url=props["url"], disabled=props["disabled"], type=props["type"], use_container_width=True)
 
 with col6:
-    # --- 偽裝區域：系統穩定性監控 (不受密碼影響，永遠開放) ---
-    
-    st.markdown('<div class="admin-zone">', unsafe_allow_html=True)
-    st.markdown('<div class="admin-title">🔒 System Integrity Monitor (系統監控台)</div>', unsafe_allow_html=True)
-    st.markdown("""
-    <div style="font-size: 0.9rem; color: #7f8c8d; margin-top: 10px; margin-bottom: 15px;">
-    <strong>[Internal Use Only]</strong> 負責監控上述所有工具的 API 連線狀態、資料抓取延遲與系統錯誤日誌。
-    <br><br>
-    此模組確保所有分析數據的準確性與即時性。若發生資料源中斷或 API 錯誤，此處將顯示即時警報以供維護。
-    </div>
-    """, unsafe_allow_html=True)
-    
-    col_status1, col_status2 = st.columns(2)
-    with col_status1:
-        st.markdown("**Status:** <span style='color:green'>● Operational</span>", unsafe_allow_html=True)
-    with col_status2:
-        st.markdown("**Uptime:** 99.9%", unsafe_allow_html=True)
+    # 偽裝區域：也加上外框，保持高度一致
+    with st.container(border=True):
+        # 這裡不使用白色背景，改用淡紅色背景區分
+        st.markdown('<div class="admin-zone">', unsafe_allow_html=True)
+        st.markdown('<div class="tool-title" style="color:#991b1b;">🔒 System Integrity Monitor</div>', unsafe_allow_html=True)
         
-    st.markdown("<br>", unsafe_allow_html=True)
-    # 這個按鈕永遠是 enabled 的，且沒有鎖頭圖示，看起來就像普通的系統入口
-    st.link_button("🔧 Maintenance Console", TOOLS["system_core"], use_container_width=True, help="進入系統維護後台")
-    st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown("""
+        <div style="font-size: 0.85rem; color: #7f8c8d; margin-bottom: 15px; line-height:1.5;">
+        <strong>[Internal Only]</strong> 監控 API 連線狀態與錯誤日誌。<br>
+        確保分析數據準確性。若發生資料源中斷，此處將顯示警報。
+        </div>
+        """, unsafe_allow_html=True)
+        
+        col_s1, col_s2 = st.columns(2)
+        with col_s1:
+            st.markdown("**Status:** <span style='color:green'>● Operational</span>", unsafe_allow_html=True)
+        with col_s2:
+            st.markdown("**Latency:** 12ms", unsafe_allow_html=True)
+            
+        st.markdown("<br>", unsafe_allow_html=True)
+        # 這個按鈕永遠保持可用
+        st.link_button("🔧 Maintenance Console", TOOLS["system_core"], use_container_width=True, help="System Admin")
+        st.markdown('</div>', unsafe_allow_html=True)
 
 # ==========================================
 # 7. 頁尾
 # ==========================================
-st.markdown("<br><br><br>", unsafe_allow_html=True)
+st.markdown("<br><br>", unsafe_allow_html=True)
 st.markdown("""
-<div style="text-align: center; color: #95a5a6; font-size: 0.8rem;">
+<div style="text-align: center; color: #94a3b8; font-size: 0.8rem;">
     © 2024 Strategic Automation Portfolio. Designed to solve real-world marketing challenges.
 </div>
 """, unsafe_allow_html=True)
