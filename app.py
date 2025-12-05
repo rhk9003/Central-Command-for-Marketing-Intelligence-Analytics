@@ -1,8 +1,5 @@
 import streamlit as st
-import matplotlib.pyplot as plt
-import matplotlib.patches as patches # 引入 patches 以防萬一
-import numpy as np
-import io
+import os
 
 # ==========================================
 # 1. 頁面基礎設定
@@ -15,155 +12,11 @@ st.set_page_config(
 )
 
 # ==========================================
-# 2. 核心技術：動態模擬畫面生成器 (Mockup Generator)
-# ==========================================
-@st.cache_data
-def create_mockup(tool_type):
-    """
-    根據工具類型，動態繪製一張模擬圖表
-    """
-    # 設定繪圖風格
-    plt.style.use('bmh') 
-    fig, ax = plt.subplots(figsize=(6, 3.5))
-    fig.patch.set_facecolor('#f8fafc') # 背景色與卡片一致
-    ax.set_facecolor('#ffffff')
-    
-    # -------------------------------------------
-    # A. 市場探勘 (紅藍海散佈圖)
-    # -------------------------------------------
-    if tool_type == "market":
-        np.random.seed(42)
-        x = np.random.randint(100, 5000, 30) # 搜尋量
-        y = np.random.randint(10, 100, 30)   # 競爭度
-        colors = ['#ef4444' if i > 60 else '#3b82f6' for i in y]
-        
-        ax.scatter(x, y, c=colors, s=x/10, alpha=0.6, edgecolors='white')
-        ax.set_title("Market Opportunity Map (Red vs Blue Ocean)", fontsize=10, color='#334155')
-        ax.set_xlabel("Search Volume (Monthly)", fontsize=8)
-        ax.set_ylabel("Competition Index", fontsize=8)
-        ax.grid(True, linestyle='--', alpha=0.3)
-        ax.text(4000, 20, "Blue Ocean\nOpportunity", fontsize=9, color='#2563eb', ha='center')
-
-    # -------------------------------------------
-    # B. 策略解構 (文字雲/架構圖模擬) -> [修復點]
-    # -------------------------------------------
-    elif tool_type == "strategy":
-        ax.set_xlim(0, 10)
-        ax.set_ylim(0, 10)
-        ax.axis('off')
-        
-        # 定義方塊：(x, y, w, h, color, text)
-        rects = [
-            (1, 6, 8, 3, "#dbeafe", "Competitor Analysis\n(Angle / Hook)"),
-            (1, 3.5, 3.5, 2, "#d1fae5", "Gap\nDiscovery"),
-            (5.5, 3.5, 3.5, 2, "#fee2e2", "Psychological\nTrigger"),
-            (1, 0.5, 8, 2.5, "#f3f4f6", "Generated Script Canvas\n[Headline] [Body] [CTA]")
-        ]
-        
-        for x, y, w, h, c, t in rects:
-            # [修復]: 移除了 rx=0.5 參數，確保舊版 matplotlib 也能執行
-            rect = patches.Rectangle((x, y), w, h, facecolor=c, edgecolor='#94a3b8', alpha=0.8)
-            ax.add_patch(rect)
-            ax.text(x + w/2, y + h/2, t, ha='center', va='center', fontsize=9, color='#475569', weight='bold')
-        
-        ax.set_title("Strategy Reverse Engineering Framework", fontsize=10, color='#334155')
-
-    # -------------------------------------------
-    # C. 成效監控 (趨勢折線圖)
-    # -------------------------------------------
-    elif tool_type == "ads":
-        days = np.arange(1, 8)
-        cpa = [150, 145, 160, 280, 290, 155, 140]
-        ctr = [1.2, 1.3, 1.2, 0.8, 0.7, 1.1, 1.3]
-        
-        ax2 = ax.twinx()
-        ax.plot(days, cpa, color='#ef4444', marker='o', label='CPA', linewidth=2)
-        ax2.plot(days, ctr, color='#3b82f6', marker='s', linestyle='--', label='CTR', linewidth=2)
-        
-        ax.annotate('Anomaly Alert!', xy=(4, 280), xytext=(2.5, 320),
-                    arrowprops=dict(facecolor='black', shrink=0.05, width=1), fontsize=8, color='#991b1b')
-        
-        ax.set_title("Performance Trend: CPA Spike Detection", fontsize=10, color='#334155')
-        ax.set_xlabel("Day (Past 7 Days)", fontsize=8)
-        ax.set_ylabel("CPA ($)", color='#ef4444', fontsize=8)
-        ax2.set_ylabel("CTR (%)", color='#3b82f6', fontsize=8)
-        
-    # -------------------------------------------
-    # D. 流量鑑識 (IQR 離群值圖)
-    # -------------------------------------------
-    elif tool_type == "audit":
-        x_norm = np.random.normal(50, 10, 50)
-        y_norm = np.random.normal(3, 0.5, 50)
-        x_ghost = np.random.normal(80, 5, 5)
-        y_ghost = np.random.normal(0.5, 0.1, 5)
-        
-        ax.scatter(x_norm, y_norm, c='#10b981', alpha=0.5, label='Normal')
-        ax.scatter(x_ghost, y_ghost, c='#ef4444', marker='x', s=100, label='Ghost Clicks')
-        
-        ax.axhline(y=1.0, color='#f59e0b', linestyle='--', alpha=0.7)
-        ax.text(20, 1.1, "Threshold (IQR Limit)", fontsize=7, color='#d97706')
-        
-        ax.set_title("Traffic Quality Forensics (Ghost Clicks)", fontsize=10, color='#334155')
-        ax.set_xlabel("Impressions", fontsize=8)
-        ax.set_ylabel("CTR (%)", fontsize=8)
-
-    # -------------------------------------------
-    # E. 網頁擷取 (流程示意圖)
-    # -------------------------------------------
-    elif tool_type == "scraper":
-        ax.axis('off')
-        nodes = [
-            (1.5, 5, "Target URLs\n(List)", '#f1f5f9'),
-            (4, 5, "Auto-Scroll\nEngine", '#3b82f6'),
-            (6.5, 5, "PDF/ZIP\nArchive", '#fcd34d')
-        ]
-        
-        ax.arrow(2.5, 5, 0.5, 0, head_width=0.3, head_length=0.2, fc='#94a3b8', ec='#94a3b8')
-        ax.arrow(5, 5, 0.5, 0, head_width=0.3, head_length=0.2, fc='#94a3b8', ec='#94a3b8')
-        
-        for x, y, t, c in nodes:
-            circle = patches.Circle((x, y), 1, color=c, alpha=0.8)
-            ax.add_patch(circle)
-            ax.text(x, y, t, ha='center', va='center', fontsize=8, weight='bold', color='#334155')
-            
-        ax.set_ylim(2, 8)
-        ax.set_xlim(0, 8)
-        ax.set_title("Automated Archiving Process Workflow", fontsize=10, color='#334155')
-
-    # -------------------------------------------
-    # F. 系統終端 (黑底綠字)
-    # -------------------------------------------
-    elif tool_type == "console":
-        ax.set_facecolor('#0f172a')
-        fig.patch.set_facecolor('#0f172a')
-        ax.axis('off')
-        
-        terminal_text = """
-> SYSTEM_DIAGNOSTIC_TOOL v2.4
------------------------------
-[INFO] API Connection .... OK (12ms)
-[INFO] Data Pipeline ..... STABLE
-[WARN] Traffic Spike detected in Node_3
-[LOG]  Auto-Scaling triggered...
-[LOG]  Optimization complete.
-
-> _ Awaiting Command...
-        """
-        ax.text(0.05, 0.9, terminal_text, color='#22c55e', fontfamily='monospace', 
-                fontsize=9, va='top', ha='left')
-        
-    plt.tight_layout()
-    
-    buf = io.BytesIO()
-    fig.savefig(buf, format="png", bbox_inches='tight', dpi=100)
-    buf.seek(0)
-    return buf
-
-# ==========================================
-# 3. CSS 樣式：強制對齊與卡片優化
+# 2. CSS 樣式
 # ==========================================
 st.markdown("""
 <style>
+    /* 全局設定 */
     .main-header {
         font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
         font-size: 2.2rem;
@@ -180,6 +33,8 @@ st.markdown("""
         margin-bottom: 30px;
         font-weight: 400;
     }
+    
+    /* 聯絡資訊 */
     .contact-card {
         background-color: #f8fafc;
         border: 1px solid #e2e8f0;
@@ -191,6 +46,8 @@ st.markdown("""
         font-size: 1rem;
     }
     .contact-card a { color: #2563eb; text-decoration: none; font-weight: 600; }
+
+    /* 分類標題 */
     .category-header {
         font-size: 1.1rem;
         font-weight: 700;
@@ -203,6 +60,8 @@ st.markdown("""
         padding-top: 8px;
         padding-bottom: 8px;
     }
+
+    /* 卡片與排版 */
     .tool-title {
         font-size: 1.2rem;
         font-weight: 700;
@@ -244,15 +103,19 @@ st.markdown("""
         border-radius: 8px;
         border: 1px dashed #ef4444;
     }
+    
+    /* 圖片樣式：加一點陰影讓截圖更立體 */
     img {
         border-radius: 4px;
         border: 1px solid #e2e8f0;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        margin-bottom: 10px;
     }
 </style>
 """, unsafe_allow_html=True)
 
 # ==========================================
-# 4. 權限控制 (Demo Access)
+# 3. 權限控制 (Demo Access)
 # ==========================================
 is_unlocked = False
 
@@ -271,7 +134,7 @@ with st.sidebar:
     st.caption("Demo Environment: 🟢 Online")
 
 # ==========================================
-# 5. 標題與簡介
+# 4. 標題與簡介
 # ==========================================
 st.markdown('<div class="main-header">數位行銷自動化解決方案中心</div>', unsafe_allow_html=True)
 st.markdown('<div class="sub-header">Strategic Automation Hub: Enhancing Efficiency & Decision Quality</div>', unsafe_allow_html=True)
@@ -297,7 +160,7 @@ with st.expander("ℹ️ 關於此平台 (About this Portfolio)", expanded=True)
     """)
 
 # ==========================================
-# 6. 工具連結設定
+# 5. 設定區：連結與圖片對照
 # ==========================================
 TOOLS = {
     "market_miner": "https://market-miner-ptfhq6qjq8vhuzaf4nkhre.streamlit.app/",
@@ -308,6 +171,27 @@ TOOLS = {
     "system_core": "https://dennisisgod-dihjnspatfsqmks2w4me2n.streamlit.app/"
 }
 
+# 這裡設定您要讀取的圖片檔名
+IMG_FILES = {
+    "market_miner": "demo_market.png",
+    "prompt_gen": "demo_strategy.png",
+    "ads_analytics": "demo_ads.png",
+    "traffic_audit": "demo_traffic.png",
+    "web_scraper": "demo_scraper.png",
+    "system_core": "demo_console.png"
+}
+
+# 輔助函式：安全顯示圖片
+def show_demo_image(key):
+    filename = IMG_FILES.get(key)
+    # 檢查檔案是否存在
+    if filename and os.path.exists(filename):
+        st.image(filename, use_container_width=True)
+    else:
+        # 如果找不到圖片，顯示一個灰底提示框，避免版面崩壞
+        st.info(f"🖼️ 待上傳截圖：{filename}")
+
+# 輔助函式：按鈕渲染
 def render_secure_btn(url, btn_key, label="🚀 開啟工具 (Launch)"):
     if is_unlocked:
         st.link_button(label=label, url=url, type="primary", use_container_width=True)
@@ -316,7 +200,7 @@ def render_secure_btn(url, btn_key, label="🚀 開啟工具 (Launch)"):
             st.toast("🚫 請輸入 Demo Key 以解鎖試用功能", icon="🔒")
 
 # ==========================================
-# 7. 儀表板佈局 (含自動生成模擬圖)
+# 6. 儀表板佈局 (真實圖片版)
 # ==========================================
 
 # --- Phase 1 ---
@@ -327,7 +211,10 @@ with col1:
     with st.container(border=True):
         st.markdown('<div class="tool-title">💎 Market Insight Miner</div>', unsafe_allow_html=True)
         st.markdown('<div class="solution-badge">解決：市場調查耗時且缺乏量化標準</div>', unsafe_allow_html=True)
-        st.image(create_mockup("market"), use_container_width=True)
+        
+        # 顯示真實截圖
+        show_demo_image("market_miner")
+        
         st.markdown("""
         <div class="desc-text">
         將繁雜的搜尋量數據轉化為可視化的「紅藍海策略地圖」。協助團隊在投入預算前，快速識別高需求但低競爭的利基市場。
@@ -346,7 +233,9 @@ with col2:
     with st.container(border=True):
         st.markdown('<div class="tool-title">🎯 Competitor Strategy Decoder</div>', unsafe_allow_html=True)
         st.markdown('<div class="solution-badge">解決：廣告缺乏差異化，創意憑感覺</div>', unsafe_allow_html=True)
-        st.image(create_mockup("strategy"), use_container_width=True)
+        
+        show_demo_image("prompt_gen")
+        
         st.markdown("""
         <div class="desc-text">
         透過逆向工程拆解競品策略。從對手文案中提煉受眾心理，自動生成具備「差異化優勢」的行銷切角，確保素材突圍。
@@ -369,7 +258,9 @@ with col3:
     with st.container(border=True):
         st.markdown('<div class="tool-title">📈 Automated Performance Audit</div>', unsafe_allow_html=True)
         st.markdown('<div class="solution-badge">解決：人工報表製作耗時，異常滯後</div>', unsafe_allow_html=True)
-        st.image(create_mockup("ads"), use_container_width=True)
+        
+        show_demo_image("ads_analytics")
+        
         st.markdown("""
         <div class="desc-text">
         取代人工 Excel 拉表，自動進行成效診斷。能比人工更早發現 CPA 暴漲或 CTR 衰退跡象，實現「即時止損」。
@@ -388,7 +279,9 @@ with col4:
     with st.container(border=True):
         st.markdown('<div class="tool-title">⚖️ Traffic Quality & Fraud Guard</div>', unsafe_allow_html=True)
         st.markdown('<div class="solution-badge">解決：無效流量浪費預算與誤導</div>', unsafe_allow_html=True)
-        st.image(create_mockup("audit"), use_container_width=True)
+        
+        show_demo_image("traffic_audit")
+        
         st.markdown("""
         <div class="desc-text">
         針對廣告帳戶進行健康度檢查，揪出「幽靈點擊」與「展示灌水」行為。確保預算花在真實的高品質潛在客戶身上。
@@ -411,7 +304,9 @@ with col5:
     with st.container(border=True):
         st.markdown('<div class="tool-title">📥 Competitive Intelligence</div>', unsafe_allow_html=True)
         st.markdown('<div class="solution-badge">解決：手動截圖效率低，難以追蹤</div>', unsafe_allow_html=True)
-        st.image(create_mockup("scraper"), use_container_width=True)
+        
+        show_demo_image("web_scraper")
+        
         st.markdown("""
         <div class="desc-text">
         模擬使用者行為，自動擷取競爭對手的動態網頁資料 (如 FB 廣告檔案庫)。解決「無限捲動」問題，建立戰略資料庫。
@@ -430,7 +325,10 @@ with col6:
     with st.container(border=True):
         st.markdown('<div class="admin-zone">', unsafe_allow_html=True)
         st.markdown('<div class="tool-title" style="color:#991b1b;">🔒 System Integrity Monitor</div>', unsafe_allow_html=True)
-        st.image(create_mockup("console"), use_container_width=True)
+        
+        # 顯示系統終端機截圖
+        show_demo_image("system_core")
+        
         st.markdown("""
         <div style="font-size: 0.85rem; color: #7f8c8d; margin-bottom: 15px; line-height:1.5;">
         <strong>[Demo Module]</strong> 監控 API 連線狀態與錯誤日誌。<br>
@@ -441,7 +339,7 @@ with col6:
         st.markdown('</div>', unsafe_allow_html=True)
 
 # ==========================================
-# 8. 頁尾
+# 7. 頁尾
 # ==========================================
 st.markdown("<br><br>", unsafe_allow_html=True)
 st.markdown("""
