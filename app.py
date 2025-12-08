@@ -17,157 +17,7 @@ st.set_page_config(
 # 2. 核心功能模組
 # ==========================================
 
-# --- 模組 A: SEO Prompt 生成器 (內建版) ---
-def render_seo_page():
-    # 局部樣式
-    st.markdown("""
-    <style>
-        .stTextArea textarea { font-family: monospace; }
-        .main-title { font-size: 2rem; font-weight: 700; color: #1e293b; margin-bottom: 10px; }
-        .step-header { color: #334155; font-weight: 600; }
-    </style>
-    """, unsafe_allow_html=True)
-
-    st.markdown('<div class="main-title">📑 SEO 文章戰略：全流程 Prompt 生成器</div>', unsafe_allow_html=True)
-    st.markdown("""
-    **使用說明：**
-    1. 依照順序在**左側**欄位填入你的資訊（或貼上 AI 上一步的回覆）。
-    2. **右側**會即時組裝好 Prompt。
-    3. 即使欄位留空，右側也會顯示帶有 `[佔位符]` 的 Prompt，方便你直接複製格式。
-    """)
-    st.divider()
-
-    # 輔助函式
-    def get_value(input_val, placeholder_text):
-        if input_val.strip():
-            return input_val
-        return f"[{placeholder_text}]"
-
-    # Step 1
-    st.header("Step 1: 產品/計畫解析")
-    col1, col2 = st.columns(2)
-    with col1:
-        p1_input = st.text_area("在此輸入產品/計畫頁面內容：", height=200, placeholder="貼上你的網站文案、產品介紹或是計畫書內容...", key="p1_in")
-    with col2:
-        st.caption("🚀 複製下方的 Prompt 給 AI：")
-        p1_content = get_value(p1_input, "請在此處貼上您的產品/計畫內容")
-        prompt1 = f"""幫我解析，這個計畫/產品頁中，提供了什麼?解決了什麼問題?
-
-內容如下：
-{p1_content}"""
-        st.code(prompt1, language="markdown")
-
-    st.divider()
-
-    # Step 2
-    st.header("Step 2: 設定目標 & 主題發想")
-    col1, col2 = st.columns(2)
-    with col1:
-        p2_input = st.text_area("在此輸入 SEO 任務目標：", height=150, placeholder="例如：我想讓找『自動化行銷』的中小企業主看到這篇文章...", key="p2_in")
-    with col2:
-        st.caption("🚀 複製下方的 Prompt 給 AI：")
-        p2_goal = get_value(p2_input, "請在此處描述您的 SEO 任務目標")
-        prompt2 = f"""現在我有個任務目標，我要撰寫一篇SEO為目的的文章，利用搜尋結果達成以下目的:
-
-{p2_goal}
-
-為了這個目的，你認為我選關鍵字該鎖定哪些主題?"""
-        st.code(prompt2, language="markdown")
-
-    st.divider()
-
-    # Step 3
-    st.header("Step 3: 核心關鍵字篩選")
-    col1, col2 = st.columns(2)
-    with col1:
-        p3_input = st.text_area("在此貼上 AI (在 Step 2) 建議的關鍵字/主題清單：", height=150, placeholder="貼上 AI 剛剛產生的主題列表...", key="p3_in")
-    with col2:
-        st.caption("🚀 複製下方的 Prompt 給 AI：")
-        p3_context = get_value(p3_input, "請在此處貼上 AI 建議的關鍵字主題清單")
-        prompt3 = f"""根據這些關鍵字，你認為哪些字最適合作為這篇文章操作的核心關鍵字
-
-參考清單：
-{p3_context}"""
-        st.code(prompt3, language="markdown")
-
-    st.divider()
-
-    # Step 4
-    st.header("Step 4: 搜尋意圖 Deep Research")
-    col1, col2 = st.columns(2)
-    with col1:
-        p4_input = st.text_area("在此輸入決定要操作的「核心關鍵字」：", height=150, placeholder="例如：\n關鍵字A\n關鍵字B", key="p4_in")
-    with col2:
-        st.caption("🚀 複製下方的 Prompt 給 AI：")
-        p4_keywords = get_value(p4_input, "請在此處輸入您選定的核心關鍵字清單")
-        prompt4 = f"""幫我針對下列關鍵字進行研究(deep research)
-我需要知道的事情有，這些關鍵字在搜尋結果中，排名前兩頁的搜尋結果標題都是些什麼?進而幫我推論，搜尋我給的這些字的使用者具有什麼樣的搜尋意圖與資訊需求?
-
-請研究後，幫我彙整每個關鍵字對應的搜尋意圖。
-
-關鍵字清單:
-{p4_keywords}"""
-        st.code(prompt4, language="markdown")
-
-    st.divider()
-
-    # Step 5
-    st.header("Step 5: 文章標題建議")
-    col1, col2 = st.columns(2)
-    with col1:
-        p5_input = st.text_area("在此貼上 AI (在 Step 4) 分析的搜尋意圖/資訊需求：", height=150, placeholder="貼上 AI 分析的意圖結果...", key="p5_in")
-    with col2:
-        st.caption("🚀 複製下方的 Prompt 給 AI：")
-        p5_intent = get_value(p5_input, "請在此處貼上搜尋意圖分析結果")
-        prompt5 = f"""請幫我根據我給的資訊/搜尋意圖，給我這篇文章能符合搜尋意圖的標題建議清單
-
-資訊/搜尋意圖參考：
-{p5_intent}"""
-        st.code(prompt5, language="markdown")
-
-    st.divider()
-
-    # Step 6
-    st.header("Step 6: 擬定文章大綱")
-    col1, col2 = st.columns(2)
-    with col1:
-        p6_input = st.text_input("在此輸入您最終選擇的「文章標題」：", placeholder="例如：如何使用 AI 提升工作效率？", key="p6_in")
-    with col2:
-        st.caption("🚀 複製下方的 Prompt 給 AI：")
-        p6_title = get_value(p6_input, "請在此處填入您選擇的文章標題")
-        prompt6 = f"""我選擇的標題如下，請根據這個標題幫我擬定這篇文章的大綱
-我希望標題能夠都以問題導向呈現。
-
-文章標題: {p6_title}"""
-        st.code(prompt6, language="markdown")
-
-    st.divider()
-
-    # Step 7
-    st.header("Step 7: 撰寫文章內容")
-    col1, col2 = st.columns(2)
-    with col1:
-        p7_word = st.text_input("文章字數需求：", value="1500字", key="p7_w")
-        p7_cta = st.text_input("文章 CTA 連結：", value="https://example.com", key="p7_cta")
-        p7_outline = st.text_area("在此貼上確認後的「文章大綱」：", height=200, placeholder="貼上 AI 擬定的大綱...", key="p7_out")
-    with col2:
-        st.caption("🚀 複製下方的 Prompt 給 AI：")
-        p7_content = get_value(p7_outline, "請在此處貼上文章大綱")
-        prompt7 = f"""請幫我根據前面訂好的大鋼與標題，撰寫文章內容
-
-文章字數需求: {p7_word}
-
-文章CTA 連結: {p7_cta}
-
-大綱:
-{p7_content}"""
-        st.code(prompt7, language="markdown")
-
-    st.divider()
-    if st.button("🗑️ 清空所有輸入欄位"):
-        st.rerun()
-
-# --- 模組 B: 系統中控台 (Dennis AI) ---
+# --- 模組 B: 系統中控台 (Dennis AI - 唯一的內建模組) ---
 def render_console_page():
     # 注入終端機樣式
     st.markdown("""
@@ -245,7 +95,6 @@ def render_dashboard():
         .category-header { font-size: 1.1rem; font-weight: 700; color: #334155; border-left: 5px solid #3b82f6; padding-left: 10px; margin-top: 30px; margin-bottom: 15px; background: linear-gradient(90deg, #f1f5f9 0%, #ffffff 100%); padding-top: 8px; padding-bottom: 8px; }
         .tool-title { font-size: 1.2rem; font-weight: 700; color: #1e293b; margin-bottom: 8px; }
         .solution-badge { font-size: 0.8rem; color: #047857; background-color: #d1fae5; padding: 4px 8px; border-radius: 4px; display: inline-block; margin-bottom: 12px; font-weight: 600; border: 1px solid #6ee7b7; }
-        .solution-badge-blue { font-size: 0.8rem; color: #1e40af; background-color: #dbeafe; padding: 4px 8px; border-radius: 4px; display: inline-block; margin-bottom: 12px; font-weight: 600; border: 1px solid #93c5fd; }
         .desc-text { font-size: 0.95rem; color: #475569; line-height: 1.5; margin-top: 10px; margin-bottom: 15px; min-height: 65px; }
         img { border-radius: 4px; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 10px; }
         .admin-zone { background-color: #fef2f2; padding: 15px; border-radius: 8px; border: 1px dashed #ef4444; }
@@ -257,7 +106,7 @@ def render_dashboard():
     st.markdown('<div class="sub-header">Strategic Automation Hub: Enhancing Efficiency & Decision Quality</div>', unsafe_allow_html=True)
     
     with st.expander("ℹ️ 關於此平台 (About)", expanded=True):
-        st.info("本平台整合多項自動化工具。請透過左側選單切換至「內建工具」或點擊下方卡片前往「外部模組」。")
+        st.info("本平台整合多項自動化工具。請點擊下方卡片按鈕前往各個模組。")
 
     # 圖片與連結設定
     IMG_FILES = {
@@ -280,7 +129,7 @@ def render_dashboard():
     URLS = {
         "market": "https://market-miner-ptfhq6qjq8vhuzaf4nkhre.streamlit.app/",
         "strategy": "https://8wiqqppginsnnhexjv6chv.streamlit.app/",
-        "seo": "https://seo-prompt-builder-jamwdfnwpn36rwsyvznj5s.streamlit.app/", # 更新網址
+        "seo": "https://seo-prompt-builder-jamwdfnwpn36rwsyvznj5s.streamlit.app/", # 更新為您提供的外部網址
         "ads": "https://adsanalyticsforcourse-7vi6zvnjeautmk4qg2s2tl.streamlit.app/",
         "traffic": "https://jfhcpyfqfqp7pwhc6yx2aw.streamlit.app/",
         "scraper": "https://competitive-intelligence-snapshot-b5sbxe3kqndxgb89782ofb.streamlit.app/"
@@ -309,18 +158,10 @@ def render_dashboard():
     with col3:
         with st.container(border=True):
             st.markdown('<div class="tool-title">📑 SEO Prompt Gen</div>', unsafe_allow_html=True)
-            st.markdown('<div class="solution-badge-blue">✨ 內建模組 (Built-in)</div>', unsafe_allow_html=True)
+            st.markdown('<div class="solution-badge">解決：AI 寫作缺乏 SEO 架構</div>', unsafe_allow_html=True)
             show_img("seo")
             st.markdown('<div class="desc-text">全流程 SEO 戰略生成器，從意圖分析到大綱產出。</div>', unsafe_allow_html=True)
-            
-            # 兩個按鈕並排
-            b_col1, b_col2 = st.columns(2)
-            with b_col1:
-                if st.button("📂 內建", key="btn_open_seo", use_container_width=True):
-                    st.session_state.page_selection = "📑 SEO 戰略生成"
-                    st.rerun()
-            with b_col2:
-                st.link_button("🔗 連結", URLS["seo"], use_container_width=True)
+            st.link_button("🚀 開啟 (External)", URLS["seo"], use_container_width=True)
 
     # --- Phase 2: 成效 ---
     st.markdown('<div class="category-header">Phase 2: 成效優化與風險控制</div>', unsafe_allow_html=True)
@@ -376,11 +217,11 @@ if "page_selection" not in st.session_state:
 with st.sidebar:
     st.title("🎛️ 導覽中心")
     
-    # 使用 radio 按鈕作為導覽，並與 session_state 同步
+    # 使用 radio 按鈕作為導覽
     selection = st.radio(
         "前往模組：",
-        ["🏠 首頁 (Dashboard)", "📑 SEO 戰略生成", "🔧 系統中控 (Dennis AI)"],
-        index=["🏠 首頁 (Dashboard)", "📑 SEO 戰略生成", "🔧 系統中控 (Dennis AI)"].index(st.session_state.page_selection)
+        ["🏠 首頁 (Dashboard)", "🔧 系統中控 (Dennis AI)"],
+        index=["🏠 首頁 (Dashboard)", "🔧 系統中控 (Dennis AI)"].index(st.session_state.page_selection)
     )
     
     # 更新 session state
@@ -389,12 +230,10 @@ with st.sidebar:
         st.rerun()
     
     st.divider()
-    st.info("💡 提示：SEO 工具與系統中控台已整合為內建模組，可直接點擊切換。")
+    st.caption("System Status: Online 🟢")
 
 # 根據選擇渲染頁面
 if st.session_state.page_selection == "🏠 首頁 (Dashboard)":
     render_dashboard()
-elif st.session_state.page_selection == "📑 SEO 戰略生成":
-    render_seo_page()
 elif st.session_state.page_selection == "🔧 系統中控 (Dennis AI)":
     render_console_page()
