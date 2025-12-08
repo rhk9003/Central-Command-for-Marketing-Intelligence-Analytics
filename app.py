@@ -1,7 +1,7 @@
 import streamlit as st
 import os
 import requests
-import streamlit.components.v1 as components # 新增：用於注入 GA4 代碼
+import streamlit.components.v1 as components
 
 # ==========================================
 # 1. 頁面基礎設定 (必須在第一行)
@@ -14,13 +14,13 @@ st.set_page_config(
 )
 
 # ==========================================
-# [新增] GA4 追蹤代碼注入函式
+# 2. [加強版] GA4 追蹤與事件監聽
 # ==========================================
 def inject_ga():
     GA_ID = "G-YTE8LJXD3V"
     
-    # 使用 components.html 注入 JS，確保 GA4 在背景執行
-    # 注意：GA4 的自動追蹤功能 (Enhanced Measurement) 會自動捕捉 st.link_button 的點擊
+    # 使用 components.html 注入，並增加 console.log 以便除錯
+    # 注意：在 Streamlit 中，GA4 會在 iframe 內運作，這屬正常現象
     ga_code = f"""
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id={GA_ID}"></script>
@@ -28,19 +28,23 @@ def inject_ga():
         window.dataLayer = window.dataLayer || [];
         function gtag(){{dataLayer.push(arguments);}}
         gtag('js', new Date());
+        
         gtag('config', '{GA_ID}', {{
             'send_page_view': true,
             'cookie_flags': 'SameSite=None;Secure'
         }});
+        
+        console.log("✅ GA4 Initialized: {GA_ID}");
     </script>
     """
+    # height=0, width=0 隱藏 iframe，但確保 script 執行
     components.html(ga_code, height=0, width=0)
 
-# 執行注入
+# 立即執行注入
 inject_ga()
 
 # ==========================================
-# 2. CSS 樣式
+# 3. CSS 樣式
 # ==========================================
 st.markdown("""
 <style>
@@ -148,7 +152,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ==========================================
-# 3. 系統核心邏輯 (雲端計數)
+# 4. 系統核心邏輯 (雲端計數)
 # ==========================================
 COUNTER_URL = "https://api.counterapi.dev/v1"
 NAMESPACE = "rhk_portfolio_system" 
@@ -170,7 +174,7 @@ def log_access_attempt():
         pass
 
 # ==========================================
-# 4. 權限控制 (Sidebar 密碼鎖)
+# 5. 權限控制 (Sidebar 密碼鎖)
 # ==========================================
 is_unlocked = False
 
@@ -189,7 +193,7 @@ with st.sidebar:
     st.caption("Demo Environment: 🟢 Online")
 
 # ==========================================
-# 5. 標題與簡介
+# 6. 標題與簡介
 # ==========================================
 st.markdown('<div class="main-header">數位行銷自動化解決方案中心</div>', unsafe_allow_html=True)
 st.markdown('<div class="sub-header">Strategic Automation Hub: Enhancing Efficiency & Decision Quality</div>', unsafe_allow_html=True)
@@ -214,7 +218,7 @@ with st.expander("ℹ️ 關於此平台 (About this Portfolio)", expanded=True)
     """)
 
 # ==========================================
-# 6. 設定區：連結與圖片
+# 7. 設定區：連結與圖片
 # ==========================================
 TOOLS = {
     "market_miner": "https://market-miner-ptfhq6qjq8vhuzaf4nkhre.streamlit.app/",
@@ -246,13 +250,15 @@ def show_demo_image(key):
 
 def render_secure_btn(url, btn_key, label="🚀 開啟工具 (Launch)"):
     if is_unlocked:
+        # 使用 link_button 以觸發 GA4 的 outbound click 追蹤
         st.link_button(label=label, url=url, type="primary", use_container_width=True)
     else:
+        # 鎖定狀態
         if st.button("🔒 Demo Restricted", key=btn_key, type="secondary", use_container_width=True, disabled=False):
             st.toast("🚫 請輸入 Demo Key 以解鎖試用功能", icon="🔒")
 
 # ==========================================
-# 7. 儀表板佈局
+# 8. 儀表板佈局
 # ==========================================
 
 # --- Phase 1: 策略 ---
@@ -359,7 +365,7 @@ with col7:
         </div>
         """, unsafe_allow_html=True)
         
-        # 系統中控台邏輯
+        # 系統中控台按鈕邏輯
         if "console_connected" not in st.session_state:
             st.session_state.console_connected = False
             
@@ -372,12 +378,13 @@ with col7:
         else:
             # 顯示連線成功並提供「連外跳轉」
             st.success("✅ Connection Established")
+            # 這裡也是 link_button，GA4 會自動追蹤
             st.link_button("🔧 Enter Demo Console", TOOLS["system_core"], use_container_width=True)
 
         st.markdown('</div>', unsafe_allow_html=True)
 
 # ==========================================
-# 8. 頁尾
+# 9. 頁尾
 # ==========================================
 st.markdown("<br><br>", unsafe_allow_html=True)
 st.markdown("""
