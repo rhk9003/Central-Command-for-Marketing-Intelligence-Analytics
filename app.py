@@ -19,7 +19,7 @@ st.set_page_config(
 # ==========================================
 COUNTER_URL = "https://api.counterapi.dev/v1"
 NAMESPACE = "rhk_portfolio_system" 
-KEY = "total_site_visits" # 改名為 site_visits，統計所有造訪
+KEY = "total_site_visits" # 統計所有造訪
 
 # 利用 Cache 儲存「上一次」造訪時間 (Server Cache)
 @st.cache_resource
@@ -188,7 +188,7 @@ with st.sidebar:
     if password == "790420":
         is_unlocked = True
         
-        # 讀取數據 (不增加次數，只讀取)
+        # 讀取數據
         total_visits, last_time = get_current_stats()
         
         st.success("✅ Authorized")
@@ -321,8 +321,8 @@ with col3:
         全流程 SEO 戰略生成器。從產品解析、關鍵字調研到意圖分析，一步步引導 AI 產出高排名文章架構。
         </div>
         """, unsafe_allow_html=True)
-        # 這裡不需鎖定，直接顯示連結
-        st.link_button("🚀 開啟工具 (Launch)", TOOLS["seo_gen"], type="primary", use_container_width=True)
+        # 修正：改用 secure_btn
+        render_secure_btn(TOOLS["seo_gen"], "btn_seo")
 
 # --- Phase 2: 成效 ---
 st.markdown('<div class="category-header">Phase 2: 成效優化與風險控制</div>', unsafe_allow_html=True)
@@ -381,10 +381,10 @@ with col7:
         </div>
         """, unsafe_allow_html=True)
         
-        # 系統中控台連結 (不需鎖定，保持外部跳轉)
+        # 系統中控台連結
         if st.button("⚡ Initialize Connection", use_container_width=True, type="primary"):
             st.link_button("🔧 Enter Demo Console", TOOLS["system_core"], use_container_width=True)
-        # 注意：st.button 按下後會刷新，直接用 link_button 更直覺，這裡為保持儀式感使用 link_button
+        # 維持儀式感，預設顯示按鈕
         st.link_button("🔧 Enter Demo Console", TOOLS["system_core"], use_container_width=True)
 
         st.markdown('</div>', unsafe_allow_html=True)
