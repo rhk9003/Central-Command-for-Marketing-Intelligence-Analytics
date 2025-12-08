@@ -1,47 +1,62 @@
 import streamlit as st
 import os
 import requests
-import streamlit.components.v1 as components
+from datetime import datetime
+import pytz
 
 # ==========================================
-# 1. 頁面基礎設定 (必須在第一行)
+# 1. 頁面基礎設定
 # ==========================================
 st.set_page_config(
     page_title="數位行銷自動化解決方案 | Portfolio",
     page_icon="💼",
     layout="wide",
-    initial_sidebar_state="collapsed" 
+    initial_sidebar_state="expanded" 
 )
 
 # ==========================================
-# 2. [加強版] GA4 追蹤與事件監聽
+# 2. 核心邏輯：全站訪客計數 (隱藏式)
 # ==========================================
-def inject_ga():
-    GA_ID = "G-YTE8LJXD3V"
-    
-    # 使用 components.html 注入，並增加 console.log 以便除錯
-    # 注意：在 Streamlit 中，GA4 會在 iframe 內運作，這屬正常現象
-    ga_code = f"""
-    <!-- Global site tag (gtag.js) - Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id={GA_ID}"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){{dataLayer.push(arguments);}}
-        gtag('js', new Date());
-        
-        gtag('config', '{GA_ID}', {{
-            'send_page_view': true,
-            'cookie_flags': 'SameSite=None;Secure'
-        }});
-        
-        console.log("✅ GA4 Initialized: {GA_ID}");
-    </script>
-    """
-    # height=0, width=0 隱藏 iframe，但確保 script 執行
-    components.html(ga_code, height=0, width=0)
+COUNTER_URL = "https://api.counterapi.dev/v1"
+NAMESPACE = "rhk_portfolio_system" 
+KEY = "total_site_visits" # 改名為 site_visits，統計所有造訪
 
-# 立即執行注入
-inject_ga()
+# 利用 Cache 儲存「上一次」造訪時間 (Server Cache)
+@st.cache_resource
+def get_server_state():
+    return {"last_visit_timestamp": "系統重啟後首位"}
+
+server_state = get_server_state()
+
+def get_tw_time():
+    tw = pytz.timezone('Asia/Taipei')
+    return datetime.now(tw).strftime("%Y-%m-%d %H:%M:%S")
+
+def increment_visit():
+    """造訪次數 +1 (寫入)"""
+    try:
+        requests.get(f"{COUNTER_URL}/{NAMESPACE}/{KEY}/up", timeout=1)
+    except:
+        pass
+    
+    # 更新 Server 上的最後造訪時間
+    server_state["last_visit_timestamp"] = get_tw_time()
+
+def get_current_stats():
+    """讀取目前數據 (唯讀)"""
+    try:
+        r = requests.get(f"{COUNTER_URL}/{NAMESPACE}/{KEY}/", timeout=1)
+        count = r.json().get("count", 0) if r.status_code == 200 else 0
+    except:
+        count = 0
+    
+    return count, server_state["last_visit_timestamp"]
+
+# --- 自動計數邏輯 ---
+# 只要 session_state 中沒有 'visited' 標記，就代表是新開的網頁，執行 +1
+if "visited" not in st.session_state:
+    increment_visit()
+    st.session_state.visited = True # 標記為已造訪，刷新頁面不會再加
 
 # ==========================================
 # 3. CSS 樣式
@@ -137,63 +152,71 @@ st.markdown("""
         margin-bottom: 10px;
     }
     
-    /* 計數器樣式 */
-    .counter-text {
+    /* 後台數據顯示 */
+    .stat-box {
+        background-color: #f1f5f9;
+        border: 1px solid #cbd5e1;
+        padding: 10px;
+        border-radius: 6px;
+        margin-bottom: 15px;
         font-family: monospace;
-        color: #b91c1c;
-        font-size: 0.9rem;
-        background-color: #fee2e2;
-        padding: 5px 10px;
-        border-radius: 4px;
-        display: inline-block;
-        margin-bottom: 10px;
+        color: #334155;
+    }
+    .stat-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 5px;
+        font-size: 0.85rem;
+    }
+    .stat-val {
+        font-weight: bold;
+        color: #0f172a;
     }
 </style>
 """, unsafe_allow_html=True)
 
 # ==========================================
-# 4. 系統核心邏輯 (雲端計數)
-# ==========================================
-COUNTER_URL = "https://api.counterapi.dev/v1"
-NAMESPACE = "rhk_portfolio_system" 
-KEY = "console_access_logs"
-
-def get_access_count():
-    try:
-        r = requests.get(f"{COUNTER_URL}/{NAMESPACE}/{KEY}/", timeout=1)
-        if r.status_code == 200:
-            return r.json().get("count", 0)
-    except:
-        return 0 
-    return 0
-
-def log_access_attempt():
-    try:
-        requests.get(f"{COUNTER_URL}/{NAMESPACE}/{KEY}/up", timeout=1)
-    except:
-        pass
-
-# ==========================================
-# 5. 權限控制 (Sidebar 密碼鎖)
+# 4. 權限控制 (Sidebar: 管理員後台)
 # ==========================================
 is_unlocked = False
 
 with st.sidebar:
-    st.title("🔐 Demo Access")
-    st.info("部分進階分析模組需輸入 Demo Key 才能解鎖完整功能。")
-    password = st.text_input("Enter Access Key", type="password", placeholder="請輸入 Demo Key")
+    st.title("🔐 Admin Access")
+    
+    password = st.text_input("Access Key", type="password", placeholder="輸入密碼查看數據")
     
     if password == "790420":
         is_unlocked = True
-        st.success("✅ 驗證成功：Demo 功能已解鎖")
+        
+        # 讀取數據 (不增加次數，只讀取)
+        total_visits, last_time = get_current_stats()
+        
+        st.success("✅ Authorized")
+        
+        st.markdown(f"""
+        <div class="stat-box">
+            <div class="stat-row">
+                <span>🌍 Total Visits:</span>
+                <span class="stat-val">{total_visits}</span>
+            </div>
+            <hr style="margin: 5px 0; border-color: #cbd5e1;">
+            <div class="stat-row">
+                <span>🕒 Last Visit:</span>
+            </div>
+            <div style="font-size: 0.8rem; text-align: right; color: #64748b;">
+                {last_time}
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        
     elif password:
-        st.error("❌ Key 錯誤")
+        st.error("❌ Access Denied")
     
     st.divider()
-    st.caption("Demo Environment: 🟢 Online")
+    st.caption("System Status: 🟢 Online")
 
 # ==========================================
-# 6. 標題與簡介
+# 5. 標題與簡介
 # ==========================================
 st.markdown('<div class="main-header">數位行銷自動化解決方案中心</div>', unsafe_allow_html=True)
 st.markdown('<div class="sub-header">Strategic Automation Hub: Enhancing Efficiency & Decision Quality</div>', unsafe_allow_html=True)
@@ -218,7 +241,7 @@ with st.expander("ℹ️ 關於此平台 (About this Portfolio)", expanded=True)
     """)
 
 # ==========================================
-# 7. 設定區：連結與圖片
+# 6. 設定區：連結與圖片
 # ==========================================
 TOOLS = {
     "market_miner": "https://market-miner-ptfhq6qjq8vhuzaf4nkhre.streamlit.app/",
@@ -250,15 +273,14 @@ def show_demo_image(key):
 
 def render_secure_btn(url, btn_key, label="🚀 開啟工具 (Launch)"):
     if is_unlocked:
-        # 使用 link_button 以觸發 GA4 的 outbound click 追蹤
         st.link_button(label=label, url=url, type="primary", use_container_width=True)
     else:
-        # 鎖定狀態
+        # 未解鎖狀態：鎖定按鈕
         if st.button("🔒 Demo Restricted", key=btn_key, type="secondary", use_container_width=True, disabled=False):
-            st.toast("🚫 請輸入 Demo Key 以解鎖試用功能", icon="🔒")
+            st.toast("🚫 請輸入 Admin Key 以解鎖試用功能", icon="🔒")
 
 # ==========================================
-# 8. 儀表板佈局
+# 7. 儀表板佈局
 # ==========================================
 
 # --- Phase 1: 策略 ---
@@ -299,7 +321,8 @@ with col3:
         全流程 SEO 戰略生成器。從產品解析、關鍵字調研到意圖分析，一步步引導 AI 產出高排名文章架構。
         </div>
         """, unsafe_allow_html=True)
-        render_secure_btn(TOOLS["seo_gen"], "btn_seo")
+        # 這裡不需鎖定，直接顯示連結
+        st.link_button("🚀 開啟工具 (Launch)", TOOLS["seo_gen"], type="primary", use_container_width=True)
 
 # --- Phase 2: 成效 ---
 st.markdown('<div class="category-header">Phase 2: 成效優化與風險控制</div>', unsafe_allow_html=True)
@@ -351,40 +374,23 @@ with col7:
         st.markdown('<div class="tool-title" style="color:#991b1b;">🔒 System Integrity Monitor</div>', unsafe_allow_html=True)
         show_demo_image("system_core")
         
-        # 讀取目前次數
-        access_count = get_access_count()
-        
-        st.markdown(f"""
+        st.markdown("""
         <div style="font-size: 0.85rem; color: #7f8c8d; margin-bottom: 10px; line-height:1.5;">
         <strong>[Demo Module]</strong> 監控 API 連線狀態與系統日誌。<br>
         確保分析數據準確性。
         </div>
-        
-        <div class="counter-text">
-        ⚡ Access Logs: {access_count} Attempts
-        </div>
         """, unsafe_allow_html=True)
         
-        # 系統中控台按鈕邏輯
-        if "console_connected" not in st.session_state:
-            st.session_state.console_connected = False
-            
-        if not st.session_state.console_connected:
-            if st.button("⚡ Initialize Connection", use_container_width=True, type="primary"):
-                with st.spinner("Connecting to secure server..."):
-                    log_access_attempt() # 寫入計數
-                    st.session_state.console_connected = True
-                    st.rerun() # 重新整理以顯示連結按鈕
-        else:
-            # 顯示連線成功並提供「連外跳轉」
-            st.success("✅ Connection Established")
-            # 這裡也是 link_button，GA4 會自動追蹤
+        # 系統中控台連結 (不需鎖定，保持外部跳轉)
+        if st.button("⚡ Initialize Connection", use_container_width=True, type="primary"):
             st.link_button("🔧 Enter Demo Console", TOOLS["system_core"], use_container_width=True)
+        # 注意：st.button 按下後會刷新，直接用 link_button 更直覺，這裡為保持儀式感使用 link_button
+        st.link_button("🔧 Enter Demo Console", TOOLS["system_core"], use_container_width=True)
 
         st.markdown('</div>', unsafe_allow_html=True)
 
 # ==========================================
-# 9. 頁尾
+# 8. 頁尾
 # ==========================================
 st.markdown("<br><br>", unsafe_allow_html=True)
 st.markdown("""
