@@ -1,9 +1,10 @@
 import streamlit as st
 import os
 import requests
+import streamlit.components.v1 as components # 新增：用於注入 GA4 代碼
 
 # ==========================================
-# 1. 頁面基礎設定
+# 1. 頁面基礎設定 (必須在第一行)
 # ==========================================
 st.set_page_config(
     page_title="數位行銷自動化解決方案 | Portfolio",
@@ -13,7 +14,33 @@ st.set_page_config(
 )
 
 # ==========================================
-# 2. CSS 樣式 (維持原版設計)
+# [新增] GA4 追蹤代碼注入函式
+# ==========================================
+def inject_ga():
+    GA_ID = "G-YTE8LJXD3V"
+    
+    # 使用 components.html 注入 JS，確保 GA4 在背景執行
+    # 注意：GA4 的自動追蹤功能 (Enhanced Measurement) 會自動捕捉 st.link_button 的點擊
+    ga_code = f"""
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id={GA_ID}"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){{dataLayer.push(arguments);}}
+        gtag('js', new Date());
+        gtag('config', '{GA_ID}', {{
+            'send_page_view': true,
+            'cookie_flags': 'SameSite=None;Secure'
+        }});
+    </script>
+    """
+    components.html(ga_code, height=0, width=0)
+
+# 執行注入
+inject_ga()
+
+# ==========================================
+# 2. CSS 樣式
 # ==========================================
 st.markdown("""
 <style>
@@ -89,14 +116,7 @@ st.markdown("""
         line-height: 1.5;
         margin-top: 10px;
         margin-bottom: 15px;
-        min-height: 80px; /* 稍微加高以容納內容 */
-    }
-    .feature-list {
-        font-size: 0.85rem;
-        color: #64748b;
-        margin-bottom: 15px;
-        padding-left: 18px;
-        min-height: 70px; 
+        min-height: 80px; 
     }
     .admin-zone {
         background-color: #fef2f2;
@@ -150,7 +170,7 @@ def log_access_attempt():
         pass
 
 # ==========================================
-# 4. 權限控制 (恢復 Sidebar 密碼鎖)
+# 4. 權限控制 (Sidebar 密碼鎖)
 # ==========================================
 is_unlocked = False
 
@@ -194,12 +214,12 @@ with st.expander("ℹ️ 關於此平台 (About this Portfolio)", expanded=True)
     """)
 
 # ==========================================
-# 6. 設定區：連結與圖片 (加入 SEO 工具)
+# 6. 設定區：連結與圖片
 # ==========================================
 TOOLS = {
     "market_miner": "https://market-miner-ptfhq6qjq8vhuzaf4nkhre.streamlit.app/",
     "prompt_gen": "https://8wiqqppginsnnhexjv6chv.streamlit.app/",
-    "seo_gen": "https://seo-prompt-builder-jamwdfnwpn36rwsyvznj5s.streamlit.app/", # 新增 SEO 工具
+    "seo_gen": "https://seo-prompt-builder-jamwdfnwpn36rwsyvznj5s.streamlit.app/", 
     "ads_analytics": "https://adsanalyticsforcourse-7vi6zvnjeautmk4qg2s2tl.streamlit.app/",
     "traffic_audit": "https://jfhcpyfqfqp7pwhc6yx2aw.streamlit.app/",
     "web_scraper": "https://competitive-intelligence-snapshot-b5sbxe3kqndxgb89782ofb.streamlit.app/",
@@ -210,7 +230,7 @@ TOOLS = {
 IMG_FILES = {
     "market_miner": "demo_market.png",
     "prompt_gen": "demo_strategy.png",
-    "seo_gen": "demo_seo.png", # 新增 SEO 圖片
+    "seo_gen": "demo_seo.png",
     "ads_analytics": "demo_ads.png",
     "traffic_audit": "demo_traffic.png",
     "web_scraper": "demo_scraper.png",
@@ -235,7 +255,7 @@ def render_secure_btn(url, btn_key, label="🚀 開啟工具 (Launch)"):
 # 7. 儀表板佈局
 # ==========================================
 
-# --- Phase 1: 策略 (改為 3 欄以容納 SEO 工具) ---
+# --- Phase 1: 策略 ---
 st.markdown('<div class="category-header">Phase 1: 市場決策與策略制定</div>', unsafe_allow_html=True)
 col1, col2, col3 = st.columns(3)
 
@@ -263,7 +283,7 @@ with col2:
         """, unsafe_allow_html=True)
         render_secure_btn(TOOLS["prompt_gen"], "btn_prompt")
 
-with col3: # 新增的 SEO 工具欄位
+with col3:
     with st.container(border=True):
         st.markdown('<div class="tool-title">📑 SEO Prompt Gen</div>', unsafe_allow_html=True)
         st.markdown('<div class="solution-badge">解決：AI 寫文章缺乏 SEO 架構</div>', unsafe_allow_html=True)
@@ -339,10 +359,7 @@ with col7:
         </div>
         """, unsafe_allow_html=True)
         
-        # 系統中控台的特殊按鈕邏輯：
-        # 1. 點擊初始化 -> 寫入Log -> 顯示外部連結按鈕
-        # 2. 外部連結按鈕連去您的 Dennis AI 網頁
-        
+        # 系統中控台邏輯
         if "console_connected" not in st.session_state:
             st.session_state.console_connected = False
             
