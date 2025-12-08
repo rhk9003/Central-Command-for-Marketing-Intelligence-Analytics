@@ -1,398 +1,400 @@
 import streamlit as st
 import os
-import requests # 新增：用於呼叫計數 API
+import requests
+import time
 
 # ==========================================
-# 1. 頁面基礎設定
+# 1. 全局設定 (必須在第一行)
 # ==========================================
 st.set_page_config(
     page_title="數位行銷自動化解決方案 | Portfolio",
     page_icon="💼",
     layout="wide",
-    initial_sidebar_state="collapsed" 
+    initial_sidebar_state="expanded"
 )
 
 # ==========================================
-# 2. CSS 樣式
+# 2. 核心功能模組
 # ==========================================
-st.markdown("""
-<style>
-    /* 全局設定 */
-    .main-header {
-        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-        font-size: 2.2rem;
-        font-weight: 700;
-        color: #2c3e50;
-        text-align: center;
-        margin-top: 10px;
-        margin-bottom: 5px;
-    }
-    .sub-header {
-        font-size: 1rem;
-        color: #7f8c8d;
-        text-align: center;
-        margin-bottom: 30px;
-        font-weight: 400;
+
+# --- 模組 A: SEO Prompt 生成器 (內建版) ---
+def render_seo_page():
+    # 局部樣式
+    st.markdown("""
+    <style>
+        .stTextArea textarea { font-family: monospace; }
+        .main-title { font-size: 2rem; font-weight: 700; color: #1e293b; margin-bottom: 10px; }
+        .step-header { color: #334155; font-weight: 600; }
+    </style>
+    """, unsafe_allow_html=True)
+
+    st.markdown('<div class="main-title">📑 SEO 文章戰略：全流程 Prompt 生成器</div>', unsafe_allow_html=True)
+    st.markdown("""
+    **使用說明：**
+    1. 依照順序在**左側**欄位填入你的資訊（或貼上 AI 上一步的回覆）。
+    2. **右側**會即時組裝好 Prompt。
+    3. 即使欄位留空，右側也會顯示帶有 `[佔位符]` 的 Prompt，方便你直接複製格式。
+    """)
+    st.divider()
+
+    # 輔助函式
+    def get_value(input_val, placeholder_text):
+        if input_val.strip():
+            return input_val
+        return f"[{placeholder_text}]"
+
+    # Step 1
+    st.header("Step 1: 產品/計畫解析")
+    col1, col2 = st.columns(2)
+    with col1:
+        p1_input = st.text_area("在此輸入產品/計畫頁面內容：", height=200, placeholder="貼上你的網站文案、產品介紹或是計畫書內容...", key="p1_in")
+    with col2:
+        st.caption("🚀 複製下方的 Prompt 給 AI：")
+        p1_content = get_value(p1_input, "請在此處貼上您的產品/計畫內容")
+        prompt1 = f"""幫我解析，這個計畫/產品頁中，提供了什麼?解決了什麼問題?
+
+內容如下：
+{p1_content}"""
+        st.code(prompt1, language="markdown")
+
+    st.divider()
+
+    # Step 2
+    st.header("Step 2: 設定目標 & 主題發想")
+    col1, col2 = st.columns(2)
+    with col1:
+        p2_input = st.text_area("在此輸入 SEO 任務目標：", height=150, placeholder="例如：我想讓找『自動化行銷』的中小企業主看到這篇文章...", key="p2_in")
+    with col2:
+        st.caption("🚀 複製下方的 Prompt 給 AI：")
+        p2_goal = get_value(p2_input, "請在此處描述您的 SEO 任務目標")
+        prompt2 = f"""現在我有個任務目標，我要撰寫一篇SEO為目的的文章，利用搜尋結果達成以下目的:
+
+{p2_goal}
+
+為了這個目的，你認為我選關鍵字該鎖定哪些主題?"""
+        st.code(prompt2, language="markdown")
+
+    st.divider()
+
+    # Step 3
+    st.header("Step 3: 核心關鍵字篩選")
+    col1, col2 = st.columns(2)
+    with col1:
+        p3_input = st.text_area("在此貼上 AI (在 Step 2) 建議的關鍵字/主題清單：", height=150, placeholder="貼上 AI 剛剛產生的主題列表...", key="p3_in")
+    with col2:
+        st.caption("🚀 複製下方的 Prompt 給 AI：")
+        p3_context = get_value(p3_input, "請在此處貼上 AI 建議的關鍵字主題清單")
+        prompt3 = f"""根據這些關鍵字，你認為哪些字最適合作為這篇文章操作的核心關鍵字
+
+參考清單：
+{p3_context}"""
+        st.code(prompt3, language="markdown")
+
+    st.divider()
+
+    # Step 4
+    st.header("Step 4: 搜尋意圖 Deep Research")
+    col1, col2 = st.columns(2)
+    with col1:
+        p4_input = st.text_area("在此輸入決定要操作的「核心關鍵字」：", height=150, placeholder="例如：\n關鍵字A\n關鍵字B", key="p4_in")
+    with col2:
+        st.caption("🚀 複製下方的 Prompt 給 AI：")
+        p4_keywords = get_value(p4_input, "請在此處輸入您選定的核心關鍵字清單")
+        prompt4 = f"""幫我針對下列關鍵字進行研究(deep research)
+我需要知道的事情有，這些關鍵字在搜尋結果中，排名前兩頁的搜尋結果標題都是些什麼?進而幫我推論，搜尋我給的這些字的使用者具有什麼樣的搜尋意圖與資訊需求?
+
+請研究後，幫我彙整每個關鍵字對應的搜尋意圖。
+
+關鍵字清單:
+{p4_keywords}"""
+        st.code(prompt4, language="markdown")
+
+    st.divider()
+
+    # Step 5
+    st.header("Step 5: 文章標題建議")
+    col1, col2 = st.columns(2)
+    with col1:
+        p5_input = st.text_area("在此貼上 AI (在 Step 4) 分析的搜尋意圖/資訊需求：", height=150, placeholder="貼上 AI 分析的意圖結果...", key="p5_in")
+    with col2:
+        st.caption("🚀 複製下方的 Prompt 給 AI：")
+        p5_intent = get_value(p5_input, "請在此處貼上搜尋意圖分析結果")
+        prompt5 = f"""請幫我根據我給的資訊/搜尋意圖，給我這篇文章能符合搜尋意圖的標題建議清單
+
+資訊/搜尋意圖參考：
+{p5_intent}"""
+        st.code(prompt5, language="markdown")
+
+    st.divider()
+
+    # Step 6
+    st.header("Step 6: 擬定文章大綱")
+    col1, col2 = st.columns(2)
+    with col1:
+        p6_input = st.text_input("在此輸入您最終選擇的「文章標題」：", placeholder="例如：如何使用 AI 提升工作效率？", key="p6_in")
+    with col2:
+        st.caption("🚀 複製下方的 Prompt 給 AI：")
+        p6_title = get_value(p6_input, "請在此處填入您選擇的文章標題")
+        prompt6 = f"""我選擇的標題如下，請根據這個標題幫我擬定這篇文章的大綱
+我希望標題能夠都以問題導向呈現。
+
+文章標題: {p6_title}"""
+        st.code(prompt6, language="markdown")
+
+    st.divider()
+
+    # Step 7
+    st.header("Step 7: 撰寫文章內容")
+    col1, col2 = st.columns(2)
+    with col1:
+        p7_word = st.text_input("文章字數需求：", value="1500字", key="p7_w")
+        p7_cta = st.text_input("文章 CTA 連結：", value="https://example.com", key="p7_cta")
+        p7_outline = st.text_area("在此貼上確認後的「文章大綱」：", height=200, placeholder="貼上 AI 擬定的大綱...", key="p7_out")
+    with col2:
+        st.caption("🚀 複製下方的 Prompt 給 AI：")
+        p7_content = get_value(p7_outline, "請在此處貼上文章大綱")
+        prompt7 = f"""請幫我根據前面訂好的大鋼與標題，撰寫文章內容
+
+文章字數需求: {p7_word}
+
+文章CTA 連結: {p7_cta}
+
+大綱:
+{p7_content}"""
+        st.code(prompt7, language="markdown")
+
+    st.divider()
+    if st.button("🗑️ 清空所有輸入欄位"):
+        st.rerun()
+
+# --- 模組 B: 系統中控台 (Dennis AI) ---
+def render_console_page():
+    # 注入終端機樣式
+    st.markdown("""
+    <style>
+        .stApp { font-family: 'Consolas', 'Monaco', monospace; }
+        .stChatMessage { background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; margin-right: 8px; }
+        .badge-sys { background-color: #cbd5e1; color: #334155; }
+        .badge-err { background-color: #fee2e2; color: #991b1b; }
+        .badge-ok  { background-color: #dcfce7; color: #166534; }
+        .badge-ai  { background-color: #dbeafe; color: #1e40af; }
+    </style>
+    """, unsafe_allow_html=True)
+
+    st.title("🔧 AI Neural Core Console")
+    st.caption("System v4.2.0 | Status: 🟡 Standby (Safe Mode)")
+    st.divider()
+
+    # 雲端計數邏輯
+    COUNTER_NAMESPACE = "dennis_handsome_project" 
+    COUNTER_KEY = "handsome_clicks"
+    API_URL = "https://api.counterapi.dev/v1"
+
+    def get_count():
+        try:
+            r = requests.get(f"{API_URL}/{COUNTER_NAMESPACE}/{COUNTER_KEY}/", timeout=1)
+            return r.json().get("count", 0) if r.status_code == 200 else 0
+        except: return 0
+
+    def inc_count():
+        try: requests.get(f"{API_URL}/{COUNTER_NAMESPACE}/{COUNTER_KEY}/up", timeout=1)
+        except: pass
+
+    col1, col2 = st.columns(2)
+    col1.metric("Latency", "12ms", "-1.4ms")
+    col2.metric("Total Restores", f"{get_count()}")
+
+    # 對話邏輯
+    if "messages" not in st.session_state:
+        st.session_state.messages = [{
+            "role": "assistant", 
+            "content": """<span class="badge badge-sys">SYSTEM</span> **Initializing...**<br>> Verifying Admin Privileges... <span style="color:#b91c1c;">[FAILED]</span><br><br><span class="badge badge-warn">WARNING</span> System is in Safe Mode. Input **Root Authorization Command** to unlock."""
+        }]
+
+    for msg in st.session_state.messages:
+        avatar = "🔧" if msg["role"] == "assistant" else "👤"
+        with st.chat_message(msg["role"], avatar=avatar):
+            st.markdown(msg["content"], unsafe_allow_html=True)
+
+    if prompt := st.chat_input("Enter system command..."):
+        user_msg = f"<span style='color:#64748b;'>$ user@admin:</span> <code>{prompt}</code>"
+        st.chat_message("user", avatar="👤").markdown(user_msg, unsafe_allow_html=True)
+        st.session_state.messages.append({"role": "user", "content": user_msg})
+
+        if prompt == "丹尼斯好帥":
+            response = """<span class="badge badge-ok">SUCCESS</span> **Authorization Accepted**<br>> Decrypting Core... 100%<br><br><span class="badge badge-ai">AI OUTPUT</span><br>### "謝謝我知道 😎"<br><hr><span class="badge badge-sys">LOG</span> *Session closed.*"""
+            st.session_state.messages.append({"role": "assistant", "content": response})
+            inc_count()
+            st.balloons()
+            time.sleep(2)
+            st.rerun()
+        else:
+            response = f"""<span class="badge badge-err">ERROR 403</span> **Command Not Recognized**<br>Hint: **"丹尼斯好帥"**"""
+            with st.chat_message("assistant", avatar="🔧"):
+                st.markdown(response, unsafe_allow_html=True)
+            st.session_state.messages.append({"role": "assistant", "content": response})
+
+# --- 模組 C: Portfolio 首頁 (Dashboard) ---
+def render_dashboard():
+    # CSS 樣式
+    st.markdown("""
+    <style>
+        .main-header { font-size: 2.2rem; font-weight: 700; color: #2c3e50; text-align: center; margin-top: 10px; }
+        .sub-header { font-size: 1rem; color: #7f8c8d; text-align: center; margin-bottom: 30px; }
+        .category-header { font-size: 1.1rem; font-weight: 700; color: #334155; border-left: 5px solid #3b82f6; padding-left: 10px; margin-top: 30px; margin-bottom: 15px; background: linear-gradient(90deg, #f1f5f9 0%, #ffffff 100%); padding-top: 8px; padding-bottom: 8px; }
+        .tool-title { font-size: 1.2rem; font-weight: 700; color: #1e293b; margin-bottom: 8px; }
+        .solution-badge { font-size: 0.8rem; color: #047857; background-color: #d1fae5; padding: 4px 8px; border-radius: 4px; display: inline-block; margin-bottom: 12px; font-weight: 600; border: 1px solid #6ee7b7; }
+        .solution-badge-blue { font-size: 0.8rem; color: #1e40af; background-color: #dbeafe; padding: 4px 8px; border-radius: 4px; display: inline-block; margin-bottom: 12px; font-weight: 600; border: 1px solid #93c5fd; }
+        .desc-text { font-size: 0.95rem; color: #475569; line-height: 1.5; margin-top: 10px; margin-bottom: 15px; min-height: 65px; }
+        img { border-radius: 4px; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 10px; }
+        .admin-zone { background-color: #fef2f2; padding: 15px; border-radius: 8px; border: 1px dashed #ef4444; }
+    </style>
+    """, unsafe_allow_html=True)
+
+    # 標題區
+    st.markdown('<div class="main-header">數位行銷自動化解決方案中心</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sub-header">Strategic Automation Hub: Enhancing Efficiency & Decision Quality</div>', unsafe_allow_html=True)
+    
+    with st.expander("ℹ️ 關於此平台 (About)", expanded=True):
+        st.info("本平台整合多項自動化工具。請透過左側選單切換至「內建工具」或點擊下方卡片前往「外部模組」。")
+
+    # 圖片與連結設定
+    IMG_FILES = {
+        "market": "demo_market.png",
+        "strategy": "demo_strategy.png",
+        "seo": "demo_seo.png", # 必須使用此檔名
+        "ads": "demo_ads.png",
+        "traffic": "demo_traffic.png",
+        "scraper": "demo_scraper.png",
+        "console": "demo_console.png"
     }
     
-    /* 聯絡資訊 */
-    .contact-card {
-        background-color: #f8fafc;
-        border: 1px solid #e2e8f0;
-        border-radius: 8px;
-        padding: 12px;
-        text-align: center;
-        margin-bottom: 25px;
-        color: #475569;
-        font-size: 1rem;
-    }
-    .contact-card a { color: #2563eb; text-decoration: none; font-weight: 600; }
+    def show_img(key):
+        if IMG_FILES.get(key) and os.path.exists(IMG_FILES.get(key)):
+            st.image(IMG_FILES.get(key), use_container_width=True)
+        else:
+            st.info(f"🖼️ 待上傳截圖：{IMG_FILES.get(key)}")
 
-    /* 分類標題 */
-    .category-header {
-        font-size: 1.1rem;
-        font-weight: 700;
-        color: #334155;
-        border-left: 5px solid #3b82f6;
-        padding-left: 10px;
-        margin-top: 30px;
-        margin-bottom: 15px;
-        background: linear-gradient(90deg, #f1f5f9 0%, #ffffff 100%);
-        padding-top: 8px;
-        padding-bottom: 8px;
+    # 外部連結
+    URLS = {
+        "market": "https://market-miner-ptfhq6qjq8vhuzaf4nkhre.streamlit.app/",
+        "strategy": "https://8wiqqppginsnnhexjv6chv.streamlit.app/",
+        "seo": "https://seo-prompt-builder-jamwdfnwpn36rwsyvznj5s.streamlit.app/", # 更新網址
+        "ads": "https://adsanalyticsforcourse-7vi6zvnjeautmk4qg2s2tl.streamlit.app/",
+        "traffic": "https://jfhcpyfqfqp7pwhc6yx2aw.streamlit.app/",
+        "scraper": "https://competitive-intelligence-snapshot-b5sbxe3kqndxgb89782ofb.streamlit.app/"
     }
 
-    /* 卡片與排版 */
-    .tool-title {
-        font-size: 1.2rem;
-        font-weight: 700;
-        color: #1e293b;
-        margin-bottom: 8px;
-        white-space: nowrap; 
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-    .solution-badge {
-        font-size: 0.8rem;
-        color: #047857;
-        background-color: #d1fae5;
-        padding: 4px 8px;
-        border-radius: 4px;
-        display: inline-block;
-        margin-bottom: 12px;
-        font-weight: 600;
-        border: 1px solid #6ee7b7;
-    }
-    .desc-text {
-        font-size: 0.95rem;
-        color: #475569;
-        line-height: 1.5;
-        margin-top: 10px;
-        margin-bottom: 15px;
-        min-height: 65px; 
-    }
-    .feature-list {
-        font-size: 0.85rem;
-        color: #64748b;
-        margin-bottom: 15px;
-        padding-left: 18px;
-        min-height: 70px; 
-    }
-    .admin-zone {
-        background-color: #fef2f2;
-        padding: 15px;
-        border-radius: 8px;
-        border: 1px dashed #ef4444;
-    }
+    # --- Phase 1: 策略 ---
+    st.markdown('<div class="category-header">Phase 1: 市場決策與策略制定</div>', unsafe_allow_html=True)
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        with st.container(border=True):
+            st.markdown('<div class="tool-title">💎 Market Miner</div>', unsafe_allow_html=True)
+            st.markdown('<div class="solution-badge">解決：市場調查缺乏量化標準</div>', unsafe_allow_html=True)
+            show_img("market")
+            st.markdown('<div class="desc-text">將搜尋量轉化為紅藍海策略地圖，識別利基市場。</div>', unsafe_allow_html=True)
+            st.link_button("🚀 開啟 (External)", URLS["market"], use_container_width=True)
+
+    with col2:
+        with st.container(border=True):
+            st.markdown('<div class="tool-title">🎯 Strategy Decoder</div>', unsafe_allow_html=True)
+            st.markdown('<div class="solution-badge">解決：文案缺乏差異化</div>', unsafe_allow_html=True)
+            show_img("strategy")
+            st.markdown('<div class="desc-text">逆向工程拆解競品策略，生成差異化行銷切角。</div>', unsafe_allow_html=True)
+            st.link_button("🚀 開啟 (External)", URLS["strategy"], use_container_width=True)
+
+    with col3:
+        with st.container(border=True):
+            st.markdown('<div class="tool-title">📑 SEO Prompt Gen</div>', unsafe_allow_html=True)
+            st.markdown('<div class="solution-badge-blue">✨ 內建模組 (Built-in)</div>', unsafe_allow_html=True)
+            show_img("seo")
+            st.markdown('<div class="desc-text">全流程 SEO 戰略生成器，從意圖分析到大綱產出。</div>', unsafe_allow_html=True)
+            
+            # 兩個按鈕並排
+            b_col1, b_col2 = st.columns(2)
+            with b_col1:
+                if st.button("📂 內建", key="btn_open_seo", use_container_width=True):
+                    st.session_state.page_selection = "📑 SEO 戰略生成"
+                    st.rerun()
+            with b_col2:
+                st.link_button("🔗 連結", URLS["seo"], use_container_width=True)
+
+    # --- Phase 2: 成效 ---
+    st.markdown('<div class="category-header">Phase 2: 成效優化與風險控制</div>', unsafe_allow_html=True)
+    col4, col5 = st.columns(2)
     
-    /* 圖片樣式 */
-    img {
-        border-radius: 4px;
-        border: 1px solid #e2e8f0;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        margin-bottom: 10px;
-    }
-    
-    /* 計數器樣式 */
-    .counter-text {
-        font-family: monospace;
-        color: #b91c1c;
-        font-size: 0.9rem;
-        background-color: #fee2e2;
-        padding: 5px 10px;
-        border-radius: 4px;
-        display: inline-block;
-        margin-bottom: 10px;
-    }
-</style>
-""", unsafe_allow_html=True)
+    with col4:
+        with st.container(border=True):
+            st.markdown('<div class="tool-title">📈 Performance Audit</div>', unsafe_allow_html=True)
+            show_img("ads")
+            st.markdown('<div class="desc-text">自動化成效診斷，比人工更早發現 CPA 異常。</div>', unsafe_allow_html=True)
+            st.link_button("📈 查看儀表板", URLS["ads"], use_container_width=True)
+
+    with col5:
+        with st.container(border=True):
+            st.markdown('<div class="tool-title">⚖️ Traffic Guard</div>', unsafe_allow_html=True)
+            show_img("traffic")
+            st.markdown('<div class="desc-text">針對廣告帳戶進行健康度檢查，揪出無效流量。</div>', unsafe_allow_html=True)
+            st.link_button("🛡️ 執行診斷", URLS["traffic"], use_container_width=True)
+
+    # --- Phase 3: 競情與中控 ---
+    st.markdown('<div class="category-header">Phase 3: 競情蒐集與系統維運</div>', unsafe_allow_html=True)
+    col6, col7 = st.columns(2)
+
+    with col6:
+        with st.container(border=True):
+            st.markdown('<div class="tool-title">📥 Web Scraper</div>', unsafe_allow_html=True)
+            show_img("scraper")
+            st.markdown('<div class="desc-text">自動擷取競品動態資料庫，解決無限捲動難題。</div>', unsafe_allow_html=True)
+            st.link_button("📥 啟動擷取", URLS["scraper"], use_container_width=True)
+
+    with col7:
+        with st.container(border=True):
+            st.markdown('<div class="admin-zone">', unsafe_allow_html=True)
+            st.markdown('<div class="tool-title" style="color:#991b1b;">🔒 System Console</div>', unsafe_allow_html=True)
+            show_img("console")
+            st.markdown('<div class="desc-text">監控 API 連線狀態與錯誤日誌 (偽裝後台)。</div>', unsafe_allow_html=True)
+            if st.button("🔧 連線至中控台", key="btn_open_console", use_container_width=True):
+                st.session_state.page_selection = "🔧 系統中控 (Dennis AI)"
+                st.rerun()
+            st.markdown('</div>', unsafe_allow_html=True)
+
+    st.markdown("<br><div style='text-align: center; color: #94a3b8; font-size: 0.8rem;'>© 2024 Strategic Automation Portfolio.</div>", unsafe_allow_html=True)
 
 # ==========================================
-# 3. 系統核心邏輯 (雲端計數)
+# 3. 主程式邏輯 (導覽控制器)
 # ==========================================
-# 使用 CounterAPI 來記錄中控台的點擊數
-COUNTER_URL = "https://api.counterapi.dev/v1"
-# 建議修改 namespace 避免跟別人重複 (例如: yourname_portfolio)
-NAMESPACE = "rhk_portfolio_system" 
-KEY = "console_access_logs"
 
-def get_access_count():
-    """讀取目前的存取次數"""
-    try:
-        r = requests.get(f"{COUNTER_URL}/{NAMESPACE}/{KEY}/")
-        if r.status_code == 200:
-            return r.json().get("count", 0)
-    except:
-        return 0 # 如果 API 失敗，回傳 0
-    return 0
+# 初始化頁面狀態
+if "page_selection" not in st.session_state:
+    st.session_state.page_selection = "🏠 首頁 (Dashboard)"
 
-def log_access_attempt():
-    """增加一次存取紀錄"""
-    try:
-        requests.get(f"{COUNTER_URL}/{NAMESPACE}/{KEY}/up")
-    except:
-        pass
-
-# ==========================================
-# 4. 權限控制 (Demo Access)
-# ==========================================
-is_unlocked = False
-
+# 側邊欄導覽
 with st.sidebar:
-    st.title("🔐 Demo Access")
-    st.info("部分進階分析模組需輸入 Demo Key 才能解鎖完整功能。")
-    password = st.text_input("Enter Access Key", type="password", placeholder="請輸入 Demo Key")
+    st.title("🎛️ 導覽中心")
     
-    if password == "790420":
-        is_unlocked = True
-        st.success("✅ 驗證成功：Demo 功能已解鎖")
-    elif password:
-        st.error("❌ Key 錯誤")
+    # 使用 radio 按鈕作為導覽，並與 session_state 同步
+    selection = st.radio(
+        "前往模組：",
+        ["🏠 首頁 (Dashboard)", "📑 SEO 戰略生成", "🔧 系統中控 (Dennis AI)"],
+        index=["🏠 首頁 (Dashboard)", "📑 SEO 戰略生成", "🔧 系統中控 (Dennis AI)"].index(st.session_state.page_selection)
+    )
+    
+    # 更新 session state
+    if selection != st.session_state.page_selection:
+        st.session_state.page_selection = selection
+        st.rerun()
     
     st.divider()
-    st.caption("Demo Environment: 🟢 Online")
+    st.info("💡 提示：SEO 工具與系統中控台已整合為內建模組，可直接點擊切換。")
 
-# ==========================================
-# 5. 標題與簡介
-# ==========================================
-st.markdown('<div class="main-header">數位行銷自動化解決方案中心</div>', unsafe_allow_html=True)
-st.markdown('<div class="sub-header">Strategic Automation Hub: Enhancing Efficiency & Decision Quality</div>', unsafe_allow_html=True)
-
-st.markdown("""
-<div class="contact-card">
-    👋 專案負責人：<strong>Rh K</strong>
-    &nbsp;&nbsp;<span style="color:#cbd5e1">|</span>&nbsp;&nbsp;
-    📧 Email：<a href="mailto:rhk9903@gmail.com">rhk9903@gmail.com</a>
-</div>
-""", unsafe_allow_html=True)
-
-with st.expander("ℹ️ 關於此平台 (About this Portfolio)", expanded=True):
-    st.warning("""
-    **⚠️ 免責聲明 (Disclaimer)**
-    
-    本平台為個人 Portfolio Demo，所有邏輯以泛用模型 (Generic Models) 與模擬數據 (Synthetic Data) 設計，
-    **不涉及任何實際客戶或前公司機密資料**。僅供技術展示與邏輯驗證使用。
-    """)
-    st.markdown("""
-    此平台整合了我開發的五套自動化工具，旨在解決數位行銷工作中常見的**「重複性作業」**與**「數據盲點」**問題。
-    **(點擊下方卡片按鈕可預覽功能，完整操作需解鎖 Demo Access)**
-    """)
-
-# ==========================================
-# 6. 設定區：連結與圖片
-# ==========================================
-TOOLS = {
-    "market_miner": "https://market-miner-ptfhq6qjq8vhuzaf4nkhre.streamlit.app/",
-    "prompt_gen": "https://8wiqqppginsnnhexjv6chv.streamlit.app/",
-    "ads_analytics": "https://adsanalyticsforcourse-7vi6zvnjeautmk4qg2s2tl.streamlit.app/",
-    "traffic_audit": "https://jfhcpyfqfqp7pwhc6yx2aw.streamlit.app/",
-    "web_scraper": "https://competitive-intelligence-snapshot-b5sbxe3kqndxgb89782ofb.streamlit.app/",
-    "system_core": "https://dennisisgod-dihjnspatfsqmks2w4me2n.streamlit.app/"
-}
-
-# 圖片檔名對照
-IMG_FILES = {
-    "market_miner": "demo_market.png",
-    "prompt_gen": "demo_strategy.png",
-    "ads_analytics": "demo_ads.png",
-    "traffic_audit": "demo_traffic.png",
-    "web_scraper": "demo_scraper.png",
-    "system_core": "demo_console.png"
-}
-
-def show_demo_image(key):
-    filename = IMG_FILES.get(key)
-    if filename and os.path.exists(filename):
-        st.image(filename, use_container_width=True)
-    else:
-        st.info(f"🖼️ 待上傳截圖：{filename}")
-
-def render_secure_btn(url, btn_key, label="🚀 開啟工具 (Launch)"):
-    if is_unlocked:
-        st.link_button(label=label, url=url, type="primary", use_container_width=True)
-    else:
-        if st.button("🔒 Demo Restricted", key=btn_key, type="secondary", use_container_width=True):
-            st.toast("🚫 請輸入 Demo Key 以解鎖試用功能", icon="🔒")
-
-# ==========================================
-# 7. 儀表板佈局
-# ==========================================
-
-# --- Phase 1 ---
-st.markdown('<div class="category-header">Phase 1: 市場決策與策略制定</div>', unsafe_allow_html=True)
-col1, col2 = st.columns(2)
-
-with col1:
-    with st.container(border=True):
-        st.markdown('<div class="tool-title">💎 Market Insight Miner</div>', unsafe_allow_html=True)
-        st.markdown('<div class="solution-badge">解決：市場調查耗時且缺乏量化標準</div>', unsafe_allow_html=True)
-        show_demo_image("market_miner")
-        st.markdown("""
-        <div class="desc-text">
-        將繁雜的搜尋量數據轉化為可視化的「紅藍海策略地圖」。協助團隊在投入預算前，快速識別高需求但低競爭的利基市場。
-        </div>
-        """, unsafe_allow_html=True)
-        st.markdown("""
-        <ul class="feature-list">
-            <li>機會點發現：計算競爭指數</li>
-            <li>消費者洞察：分析意圖與痛點</li>
-            <li>預算規劃：科學化分配預算</li>
-        </ul>
-        """, unsafe_allow_html=True)
-        render_secure_btn(TOOLS["market_miner"], "btn_market")
-
-with col2:
-    with st.container(border=True):
-        st.markdown('<div class="tool-title">🎯 Competitor Strategy Decoder</div>', unsafe_allow_html=True)
-        st.markdown('<div class="solution-badge">解決：廣告缺乏差異化，創意憑感覺</div>', unsafe_allow_html=True)
-        show_demo_image("prompt_gen")
-        st.markdown("""
-        <div class="desc-text">
-        透過逆向工程拆解競品策略。從對手文案中提煉受眾心理，自動生成具備「差異化優勢」的行銷切角，確保素材突圍。
-        </div>
-        """, unsafe_allow_html=True)
-        st.markdown("""
-        <ul class="feature-list">
-            <li>策略分析：歸納主打訴求</li>
-            <li>差異化定位：找出溝通缺口</li>
-            <li>創意產出：標準化腳本建議</li>
-        </ul>
-        """, unsafe_allow_html=True)
-        render_secure_btn(TOOLS["prompt_gen"], "btn_prompt")
-
-# --- Phase 2 ---
-st.markdown('<div class="category-header">Phase 2: 成效優化與風險控制</div>', unsafe_allow_html=True)
-col3, col4 = st.columns(2)
-
-with col3:
-    with st.container(border=True):
-        st.markdown('<div class="tool-title">📈 Automated Performance Audit</div>', unsafe_allow_html=True)
-        st.markdown('<div class="solution-badge">解決：人工報表製作耗時，異常滯後</div>', unsafe_allow_html=True)
-        show_demo_image("ads_analytics")
-        st.markdown("""
-        <div class="desc-text">
-        取代人工 Excel 拉表，自動進行成效診斷。能比人工更早發現 CPA 暴漲或 CTR 衰退跡象，實現「即時止損」。
-        </div>
-        """, unsafe_allow_html=True)
-        st.markdown("""
-        <ul class="feature-list">
-            <li>自動化週報：生成 P1D/P7D 報告</li>
-            <li>異常警示：偵測 CPA 異常暴漲</li>
-            <li>趨勢診斷：識別廣告疲勞跡象</li>
-        </ul>
-        """, unsafe_allow_html=True)
-        render_secure_btn(TOOLS["ads_analytics"], "btn_ads", label="📈 查看儀表板 (Dashboard)")
-
-with col4:
-    with st.container(border=True):
-        st.markdown('<div class="tool-title">⚖️ Traffic Quality & Fraud Guard</div>', unsafe_allow_html=True)
-        st.markdown('<div class="solution-badge">解決：無效流量浪費預算與誤導</div>', unsafe_allow_html=True)
-        show_demo_image("traffic_audit")
-        st.markdown("""
-        <div class="desc-text">
-        針對廣告帳戶進行健康度檢查，揪出「幽靈點擊」與「展示灌水」行為。確保預算花在真實的高品質潛在客戶身上。
-        </div>
-        """, unsafe_allow_html=True)
-        st.markdown("""
-        <ul class="feature-list">
-            <li>預算保護：排除異常流量來源</li>
-            <li>基準建立：統計算法建立基準線</li>
-            <li>數據清洗：還原真實成效數據</li>
-        </ul>
-        """, unsafe_allow_html=True)
-        render_secure_btn(TOOLS["traffic_audit"], "btn_traffic", label="🛡️ 執行診斷 (Diagnostic)")
-
-# --- Phase 3 ---
-st.markdown('<div class="category-header">Phase 3: 競情蒐集與系統維運</div>', unsafe_allow_html=True)
-col5, col6 = st.columns(2)
-
-with col5:
-    with st.container(border=True):
-        st.markdown('<div class="tool-title">📥 Competitive Intelligence</div>', unsafe_allow_html=True)
-        st.markdown('<div class="solution-badge">解決：手動截圖效率低，難以追蹤</div>', unsafe_allow_html=True)
-        show_demo_image("web_scraper")
-        st.markdown("""
-        <div class="desc-text">
-        模擬使用者行為，自動擷取競爭對手的動態網頁資料 (如 FB 廣告檔案庫)。解決「無限捲動」問題，建立戰略資料庫。
-        </div>
-        """, unsafe_allow_html=True)
-        st.markdown("""
-        <ul class="feature-list">
-            <li>效率提升：自動化批量歸檔</li>
-            <li>完整保存：自動展開隱藏內容</li>
-            <li>趨勢追蹤：輔助季度策略制定</li>
-        </ul>
-        """, unsafe_allow_html=True)
-        render_secure_btn(TOOLS["web_scraper"], "btn_scraper", label="📥 啟動擷取 (Scraper)")
-
-with col6:
-    with st.container(border=True):
-        st.markdown('<div class="admin-zone">', unsafe_allow_html=True)
-        st.markdown('<div class="tool-title" style="color:#991b1b;">🔒 System Integrity Monitor</div>', unsafe_allow_html=True)
-        show_demo_image("system_core")
-        
-        # --- [新增] 連線日誌與計數功能 ---
-        
-        # 讀取目前次數
-        access_count = get_access_count()
-        
-        st.markdown(f"""
-        <div style="font-size: 0.85rem; color: #7f8c8d; margin-bottom: 10px; line-height:1.5;">
-        <strong>[Demo Module]</strong> 監控 API 連線狀態與系統日誌。<br>
-        確保分析數據準確性。
-        </div>
-        
-        <div class="counter-text">
-        ⚡ Access Logs: {access_count} Attempts
-        </div>
-        """, unsafe_allow_html=True)
-        
-        # 兩段式按鈕邏輯：
-        # 1. 如果還沒連線 -> 顯示「初始化」按鈕 -> 點擊後寫入日誌並切換狀態
-        # 2. 如果已連線 -> 顯示「進入控制台」連結按鈕
-        
-        if "console_connected" not in st.session_state:
-            st.session_state.console_connected = False
-            
-        if not st.session_state.console_connected:
-            if st.button("⚡ Initialize Connection", use_container_width=True, type="primary"):
-                with st.spinner("Connecting to secure server..."):
-                    log_access_attempt() # 寫入計數
-                    st.session_state.console_connected = True
-                    st.rerun() # 重新整理以顯示連結按鈕
-        else:
-            # 顯示連線成功並提供跳轉
-            st.success("✅ Connection Established")
-            st.link_button("🔧 Enter Demo Console", TOOLS["system_core"], use_container_width=True)
-
-        st.markdown('</div>', unsafe_allow_html=True)
-
-# ==========================================
-# 8. 頁尾
-# ==========================================
-st.markdown("<br><br>", unsafe_allow_html=True)
-st.markdown("""
-<div style="text-align: center; color: #94a3b8; font-size: 0.8rem;">
-    © 2024 Strategic Automation Portfolio. Designed to solve real-world marketing challenges.
-</div>
-""", unsafe_allow_html=True)
+# 根據選擇渲染頁面
+if st.session_state.page_selection == "🏠 首頁 (Dashboard)":
+    render_dashboard()
+elif st.session_state.page_selection == "📑 SEO 戰略生成":
+    render_seo_page()
+elif st.session_state.page_selection == "🔧 系統中控 (Dennis AI)":
+    render_console_page()
