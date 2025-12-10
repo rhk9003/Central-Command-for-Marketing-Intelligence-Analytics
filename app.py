@@ -11,26 +11,30 @@ st.set_page_config(
     page_title="數位行銷自動化解決方案 | Portfolio",
     page_icon="💼",
     layout="wide",
-    initial_sidebar_state="expanded" 
+    initial_sidebar_state="expanded"
 )
 
 # ==========================================
 # 2. 核心邏輯：全站訪客計數 (隱藏式)
 # ==========================================
 COUNTER_URL = "https://api.counterapi.dev/v1"
-NAMESPACE = "rhk_portfolio_system" 
-KEY = "total_site_visits" # 統計所有造訪
+NAMESPACE = "rhk_portfolio_system"
+KEY = "total_site_visits"  # 統計所有造訪
 
-# 利用 Cache 儲存「上一次」造訪時間 (Server Cache)
+
 @st.cache_resource
 def get_server_state():
+    # 利用 Cache 儲存「上一次」造訪時間 (Server Cache)
     return {"last_visit_timestamp": "系統重啟後首位"}
 
+
 server_state = get_server_state()
+
 
 def get_tw_time():
     tw = pytz.timezone('Asia/Taipei')
     return datetime.now(tw).strftime("%Y-%m-%d %H:%M:%S")
+
 
 def increment_visit():
     """造訪次數 +1 (寫入)"""
@@ -38,9 +42,10 @@ def increment_visit():
         requests.get(f"{COUNTER_URL}/{NAMESPACE}/{KEY}/up", timeout=1)
     except:
         pass
-    
+
     # 更新 Server 上的最後造訪時間
     server_state["last_visit_timestamp"] = get_tw_time()
+
 
 def get_current_stats():
     """讀取目前數據 (唯讀)"""
@@ -49,14 +54,15 @@ def get_current_stats():
         count = r.json().get("count", 0) if r.status_code == 200 else 0
     except:
         count = 0
-    
+
     return count, server_state["last_visit_timestamp"]
+
 
 # --- 自動計數邏輯 ---
 # 只要 session_state 中沒有 'visited' 標記，就代表是新開的網頁，執行 +1
 if "visited" not in st.session_state:
     increment_visit()
-    st.session_state.visited = True # 標記為已造訪，刷新頁面不會再加
+    st.session_state.visited = True  # 標記為已造訪，刷新頁面不會再加
 
 # ==========================================
 # 3. CSS 樣式
@@ -80,7 +86,7 @@ st.markdown("""
         margin-bottom: 30px;
         font-weight: 400;
     }
-    
+
     /* 聯絡資訊 */
     .contact-card {
         background-color: #f8fafc;
@@ -114,7 +120,7 @@ st.markdown("""
         font-weight: 700;
         color: #1e293b;
         margin-bottom: 8px;
-        white-space: nowrap; 
+        white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
     }
@@ -135,7 +141,7 @@ st.markdown("""
         line-height: 1.5;
         margin-top: 10px;
         margin-bottom: 15px;
-        min-height: 80px; 
+        min-height: 80px;
     }
     .admin-zone {
         background-color: #fef2f2;
@@ -143,7 +149,7 @@ st.markdown("""
         border-radius: 8px;
         border: 1px dashed #ef4444;
     }
-    
+
     /* 圖片樣式 */
     img {
         border-radius: 4px;
@@ -151,7 +157,7 @@ st.markdown("""
         box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         margin-bottom: 10px;
     }
-    
+
     /* 後台數據顯示 */
     .stat-box {
         background-color: #f1f5f9;
@@ -182,17 +188,17 @@ is_unlocked = False
 
 with st.sidebar:
     st.title("🔐 Admin Access")
-    
+
     password = st.text_input("Access Key", type="password", placeholder="輸入密碼查看數據")
-    
+
     if password == "790420":
         is_unlocked = True
-        
+
         # 讀取數據
         total_visits, last_time = get_current_stats()
-        
+
         st.success("✅ Authorized")
-        
+
         st.markdown(f"""
         <div class="stat-box">
             <div class="stat-row">
@@ -208,10 +214,10 @@ with st.sidebar:
             </div>
         </div>
         """, unsafe_allow_html=True)
-        
+
     elif password:
         st.error("❌ Access Denied")
-    
+
     st.divider()
     st.caption("System Status: 🟢 Online")
 
@@ -246,23 +252,26 @@ with st.expander("ℹ️ 關於此平台 (About this Portfolio)", expanded=True)
 TOOLS = {
     "market_miner": "https://market-miner-ptfhq6qjq8vhuzaf4nkhre.streamlit.app/",
     "prompt_gen": "https://8wiqqppginsnnhexjv6chv.streamlit.app/",
-    "seo_gen": "https://seo-prompt-builder-jamwdfnwpn36rwsyvznj5s.streamlit.app/", 
+    "seo_gen": "https://seo-prompt-builder-jamwdfnwpn36rwsyvznj5s.streamlit.app/",
+    "meta_audience": "https://facebook-ads-interests-vsws3qt5qrzncmmpezytx9.streamlit.app/",
     "ads_analytics": "https://adsanalyticsforcourse-7vi6zvnjeautmk4qg2s2tl.streamlit.app/",
     "traffic_audit": "https://jfhcpyfqfqp7pwhc6yx2aw.streamlit.app/",
     "web_scraper": "https://competitive-intelligence-snapshot-b5sbxe3kqndxgb89782ofb.streamlit.app/",
     "system_core": "https://dennisisgod-dihjnspatfsqmks2w4me2n.streamlit.app/"
 }
 
-# 圖片檔名對照
+# 圖片檔名對照（請把新工具截圖存成 demo_meta_audience.png 放在同資料夾）
 IMG_FILES = {
     "market_miner": "demo_market.png",
     "prompt_gen": "demo_strategy.png",
     "seo_gen": "demo_seo.png",
+    "meta_audience": "demo_meta_audience.png",
     "ads_analytics": "demo_ads.png",
     "traffic_audit": "demo_traffic.png",
     "web_scraper": "demo_scraper.png",
     "system_core": "demo_console.png"
 }
+
 
 def show_demo_image(key):
     filename = IMG_FILES.get(key)
@@ -270,6 +279,7 @@ def show_demo_image(key):
         st.image(filename, use_container_width=True)
     else:
         st.info(f"🖼️ 待上傳截圖：{filename}")
+
 
 def render_secure_btn(url, btn_key, label="🚀 開啟工具 (Launch)"):
     if is_unlocked:
@@ -321,8 +331,21 @@ with col3:
         全流程 SEO 戰略生成器。從產品解析、關鍵字調研到意圖分析，一步步引導 AI 產出高排名文章架構。
         </div>
         """, unsafe_allow_html=True)
-        # 修正：改用 secure_btn
         render_secure_btn(TOOLS["seo_gen"], "btn_seo")
+
+# --- Phase 1.5: Meta Ads 受眾戰略顧問 ---
+with st.container(border=True):
+    st.markdown('<div class="tool-title">📂 Meta 廣告受眾戰略顧問</div>', unsafe_allow_html=True)
+    st.markdown('<div class="solution-badge">解決：Meta 受眾標籤龐雜、難以系統選擇</div>', unsafe_allow_html=True)
+    show_demo_image("meta_audience")
+    st.markdown("""
+    <div class="desc-text">
+    讀取本地受眾標籤資料庫與產品策略文件，半自動產出 10 組優先受眾組合，
+    並區分【資料庫驗證】與【潛在受眾】，同時給出漏斗分層建議。
+    適合作為 Meta 廣告規劃前的「受眾顧問」模組。
+    </div>
+    """, unsafe_allow_html=True)
+    render_secure_btn(TOOLS["meta_audience"], "btn_meta_audience", label="📂 啟動受眾規劃顧問")
 
 # --- Phase 2: 成效 ---
 st.markdown('<div class="category-header">Phase 2: 成效優化與風險控制</div>', unsafe_allow_html=True)
@@ -373,18 +396,16 @@ with col7:
         st.markdown('<div class="admin-zone">', unsafe_allow_html=True)
         st.markdown('<div class="tool-title" style="color:#991b1b;">🔒 System Integrity Monitor</div>', unsafe_allow_html=True)
         show_demo_image("system_core")
-        
+
         st.markdown("""
         <div style="font-size: 0.85rem; color: #7f8c8d; margin-bottom: 10px; line-height:1.5;">
         <strong>[Demo Module]</strong> 監控 API 連線狀態與系統日誌。<br>
         確保分析數據準確性。
         </div>
         """, unsafe_allow_html=True)
-        
-        # 系統中控台連結
+
         if st.button("⚡ Initialize Connection", use_container_width=True, type="primary"):
             st.link_button("🔧 Enter Demo Console", TOOLS["system_core"], use_container_width=True)
-        # 維持儀式感，預設顯示按鈕
         st.link_button("🔧 Enter Demo Console", TOOLS["system_core"], use_container_width=True)
 
         st.markdown('</div>', unsafe_allow_html=True)
